@@ -1,5 +1,13 @@
 import scrapy
 import re
+import time
+from selenium import webdriver
+from selenium.webdriver.safari.service import Service as SafariService
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from scrapy.selector import Selector
 
 # Define separate items for films and actors
 class Film(scrapy.Item):
@@ -33,12 +41,89 @@ class ImdbFilmSpider(scrapy.Spider):
         'USER_AGENT': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
         'ROBOTSTXT_OBEY': False,
         'DOWNLOAD_DELAY': 1,
+        'LOG_LEVEL': 'INFO',
+        'LOG_FORMAT': '%(message)s',
+        'LOGGING_ENABLED': False,
+        'LOG_STDOUT': False,
+        'LOGGING_SETTINGS': {
+            'loggers': {
+                'scrapy': {'level': 'CRITICAL'},
+                'scrapy.core.engine': {'level': 'CRITICAL'},
+                'scrapy.extensions': {'level': 'CRITICAL'},
+                'scrapy.middleware': {'level': 'CRITICAL'},
+                'selenium': {'level': 'CRITICAL'},
+                'urllib3': {'level': 'CRITICAL'},
+                'webdriver_manager': {'level': 'CRITICAL'},
+            }
+        }
     }
 
     # Use a set to track actor IDs to avoid duplicate actor requests
     actor_seen = set()
+    
+    def __init__(self, max_pages=100, *args, **kwargs):
+        super(ImdbFilmSpider, self).__init__(*args, **kwargs)
+        self.max_pages = int(max_pages)
+        self.driver = webdriver.Safari(service=SafariService())
 
     def parse(self, response):
+        # Start Selenium session
+        self.logger.info("Opening URL with Selenium: %s", response.url)
+        self.driver.get(response.url)
+        
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "li.ipc-metadata-list-summary-item"))
+        )
+        
+        pages_loaded = 0
+        
+        # Process current page and click "50 more" button repeatedly
+        while pages_loaded < self.max_pages:
+            # Process current page content
+            self.logger.info(f"Processing page {pages_loaded + 1}")
+            
+            # Extract films from current page state
+            page_content = self.driver.page_source
+            selector = Selector(text=page_content)
+            
+            # Process films on current page
+            for film in self._process_films(selector):
+                yield film
+            
+            # Try to find and click the "Load more" button
+            try:
+                # Scroll to bottom to ensure the button is visible
+                time.sleep(1)
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1)  # Allow time for the page to settle
+                
+                # Look for the "50 more" button
+                load_more_button = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, "//button[.//span[contains(text(), '50 more')]]"))
+                )
+                
+                # Scroll specifically to the button
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", load_more_button)
+                time.sleep(1)  # Allow time for the scroll
+                
+                # Try to click using JavaScript
+                self.logger.info("Clicking '50 more' button")
+                self.driver.execute_script("arguments[0].click();", load_more_button)
+                
+                # Wait for new content to load
+                time.sleep(3)  # Allow time for content to load
+                
+                pages_loaded += 1
+                
+            except (TimeoutException, NoSuchElementException) as e:
+                self.logger.info(f"No more '50 more' button found or error: {str(e)}")
+                break
+        
+        # Close the browser when done
+        self.driver.quit()
+    
+    def _process_films(self, response):    
         films = response.css('li.ipc-metadata-list-summary-item')
         self.logger.info("Found %d film items on the page", len(films))
         for film in films:
@@ -65,7 +150,13 @@ class ImdbFilmSpider(scrapy.Spider):
 
             # Build film detail URL
             film_url_relative = film.css('a.ipc-title-link-wrapper::attr(href)').get()
-            film_url = response.urljoin(film_url_relative) if film_url_relative else None
+            if film_url_relative:
+                if film_url_relative.startswith('/'):
+                    film_url = f"https://www.imdb.com{film_url_relative}"
+                else:
+                    film_url = film_url_relative
+            else:
+                film_url = None
 
             self.logger.info("Processing film: %s, Year: %s, URL: %s", title, year, film_url)
             if film_url:
@@ -77,12 +168,7 @@ class ImdbFilmSpider(scrapy.Spider):
                     callback=self.parse_film_detail,
                     meta={'film': meta},
                     dont_filter=True
-                )
-
-        # Follow pagination if available
-        next_page = response.css('a.lister-page-next.next-page::attr(href)').get()
-        if next_page:
-            yield response.follow(next_page, callback=self.parse)
+                ) 
 
     def parse_film_detail(self, response):
         film = response.meta['film']
