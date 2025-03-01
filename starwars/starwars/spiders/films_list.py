@@ -1,7 +1,7 @@
 import scrapy
 import re
 
-# class for scraped data
+# Define separate items for films and actors
 class Film(scrapy.Item):
     title = scrapy.Field()
     year = scrapy.Field()
@@ -17,8 +17,13 @@ class Film(scrapy.Item):
     actors = scrapy.Field()
     film_type = scrapy.Field()
 
+class Actor(scrapy.Item):
+    id = scrapy.Field()
+    name = scrapy.Field()
+    surname = scrapy.Field()
+    popularity = scrapy.Field()
+    url = scrapy.Field()
 
-# spider class
 class ImdbFilmSpider(scrapy.Spider):
     name = 'imdb_film'
     allowed_domains = ['imdb.com']
@@ -27,41 +32,42 @@ class ImdbFilmSpider(scrapy.Spider):
     custom_settings = {
         'USER_AGENT': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
         'ROBOTSTXT_OBEY': False,
-        'DOWNLOAD_DELAY': 1,  # be kind to the server
+        'DOWNLOAD_DELAY': 1,
     }
 
+    # Use a set to track actor IDs to avoid duplicate actor requests
+    actor_seen = set()
+
     def parse(self, response):
-        # Select all film items from the list using the provided ul/li structure
         films = response.css('li.ipc-metadata-list-summary-item')
         self.logger.info("Found %d film items on the page", len(films))
         for film in films:
-            # Extract the raw title text (which may include a ranking prefix like "28. ")
+            # Extract title and clean ranking prefix
             raw_title = film.css('h3.ipc-title__text::text').get()
             title = re.sub(r'^\d+\.\s*', '', raw_title) if raw_title else None
 
-            # Extract the year from the metadata items.
+            # Extract year from metadata
             metadata = film.css('span.dli-title-metadata-item::text').getall()
             year = None
             if metadata:
-                match = re.search(r'(\d{4})', metadata[0])
-                if match:
-                    year = int(match.group(1))
+                m = re.search(r'(\d{4})', metadata[0])
+                if m:
+                    year = int(m.group(1))
             
-            # Extract the film type – skip if it is a TV Series or TV Mini Series.
+            # Skip TV Series or TV Mini Series
             film_type = film.css('span.dli-title-type-data::text').get()
             if film_type and ("TV Series" in film_type or "TV Mini Series" in film_type):
                 continue
 
-            # Extract IMDb rating from the film item.
+            # Extract IMDb rating
             imdb_rating_text = film.css('span.ipc-rating-star--rating::text').get()
             imdb_rating = float(imdb_rating_text) if imdb_rating_text else None
 
-            # Extract the relative URL to the film detail page.
+            # Build film detail URL
             film_url_relative = film.css('a.ipc-title-link-wrapper::attr(href)').get()
             film_url = response.urljoin(film_url_relative) if film_url_relative else None
 
             self.logger.info("Processing film: %s, Year: %s, URL: %s", title, year, film_url)
-            # Pass basic info via meta to the detail page parser.
             if film_url:
                 meta = {'title': title, 'year': year, 'imdb': imdb_rating}
                 if film_type:
@@ -73,7 +79,7 @@ class ImdbFilmSpider(scrapy.Spider):
                     dont_filter=True
                 )
 
-        # Follow pagination if available.
+        # Follow pagination if available
         next_page = response.css('a.lister-page-next.next-page::attr(href)').get()
         if next_page:
             yield response.follow(next_page, callback=self.parse)
@@ -82,63 +88,94 @@ class ImdbFilmSpider(scrapy.Spider):
         film = response.meta['film']
         self.logger.info("Parsing detail for film: %s (status %s)", film.get('title'), response.status)
 
-        # If response is not 200, log a warning and yield what we have.
         if response.status != 200:
             self.logger.warning("Non-200 response for %s; yielding basic info.", film.get('title'))
             yield {'film': film}
             return
 
-        # Extract directors.
-        directors = response.xpath(
-            '//div[contains(@data-testid, "title-pc-principal-credit") and .//a[contains(@href, "tt_ov_dr")]]//a/text()'
-        ).getall()
+        # Extract directors (remove duplicates)
+        directors = list(set(response.xpath(
+            '//li[@data-testid="title-pc-principal-credit"][.//span[contains(text(),"Director")]]'
+            '//a[contains(@href, "/name/")]/text()'
+        ).getall()))
         film['directors'] = directors
 
-        # Extract countries.
-        countries = response.xpath('//li[@data-testid="title-details-origin"]//a/text()').getall()
-        film['countries'] = countries
+        # Extract countries
+        film['countries'] = response.xpath('//li[@data-testid="title-details-origin"]//a/text()').getall()
 
-        # Extract production budget.
-        budget_text_list = response.xpath('//li[@data-testid="title-boxoffice-budget"]//text()').getall()
-        film['production_budget'] = self.parse_money(budget_text_list)
+        # Extract production budget and box office using helper
+        film['production_budget'] = self.parse_money(response.xpath('//li[@data-testid="title-boxoffice-budget"]//text()').getall())
+        film['box_office'] = self.parse_money(response.xpath('//li[@data-testid="title-boxoffice-cumulativeworldwidegross"]//text()').getall())
 
-        # Extract box office.
-        box_office_text_list = response.xpath('//li[@data-testid="title-boxoffice-cumulativeworldwidegross"]//text()').getall()
-        film['box_office'] = self.parse_money(box_office_text_list)
-
-        # Extract metascore (using the updated selector).
+        # Extract metascore
         metascore_text = response.xpath('//span[contains(@class, "metacritic-score-box")]/text()').get()
         film['metascore'] = int(metascore_text.strip()) if metascore_text and metascore_text.strip().isdigit() else None
 
-        # Extract awards.
-        awards_text = response.xpath('//span[contains(@data-testid, "awards-info")]/text()').get()
-        film['num_of_awards'], film['num_of_nominations'] = self.extract_awards(awards_text)
+        # Extract genres (using the working structure)
+        film['genres'] = response.xpath('//div[@data-testid="interests"]//span[contains(@class,"ipc-chip__text")]/text()').getall()
 
-        # Extract genres.
-        genres = response.xpath('//li[@data-testid="storyline-genres"]//a/text()').getall()
-        film['genres'] = genres
-
-        # Extract actors.
+        # Extract actors and schedule actor page requests for popularity
         actors = []
         cast_rows = response.xpath('//div[@data-testid="title-cast-item"]')
         for row in cast_rows:
             full_name = row.xpath('.//a[contains(@data-testid, "title-cast-item__actor")]/text()').get()
-            if full_name:
+            actor_url_relative = row.xpath('.//a[contains(@data-testid, "title-cast-item__actor")]/@href').get()
+            if full_name and actor_url_relative:
                 parts = full_name.split()
                 name = parts[0]
                 surname = parts[-1] if len(parts) > 1 else ''
-                actors.append({
+                actor_url = response.urljoin(actor_url_relative)
+                actor_id_match = re.search(r'/name/(nm\d+)/', actor_url)
+                actor_id = actor_id_match.group(1) if actor_id_match else None
+                actor_data = {
                     'name': name,
                     'surname': surname,
-                    'popularity': 0  # Placeholder value
-                })
+                    'popularity': 0,  # placeholder
+                    'url': actor_url,
+                    'id': actor_id
+                }
+                actors.append(actor_data)
+                if actor_id and actor_id not in self.actor_seen:
+                    self.actor_seen.add(actor_id)
+                    yield scrapy.Request(
+                        url=actor_url,
+                        callback=self.parse_actor,
+                        meta={'actor_data': actor_data}
+                    )
         film['actors'] = actors
 
-        # Yield the final JSON structure for the film.
+        # Schedule awards page request
+        film_url = response.url
+        film_id_match = re.search(r'/title/(tt\d+)/', film_url)
+        if film_id_match:
+            film_id = film_id_match.group(1)
+            awards_url = response.urljoin(f'/title/{film_id}/awards/')
+            self.logger.info("Scheduling awards page for film %s: %s", film.get('title'), awards_url)
+            yield scrapy.Request(
+                url=awards_url,
+                callback=self.parse_awards,
+                meta={'film': film},
+                dont_filter=True
+            )
+        else:
+            yield {'film': film}
+
+    def parse_awards(self, response):
+        film = response.meta['film']
+        self.logger.info("Parsing awards for film: %s", film.get('title'))
+        awards_text = response.css('div[data-testid="awards-signpost"] div.ipc-signpost__text::text').get()
+        wins = 0
+        nominations = 0
+        if awards_text:
+            wins_match = re.search(r'(\d+)\s+wins', awards_text, re.IGNORECASE)
+            noms_match = re.search(r'(\d+)\s+nominations', awards_text, re.IGNORECASE)
+            wins = int(wins_match.group(1)) if wins_match else 0
+            nominations = int(noms_match.group(1)) if noms_match else 0
+        film['num_of_awards'] = wins
+        film['num_of_nominations'] = nominations
         yield {'film': film}
 
     def parse_money(self, text_list):
-        """Parse text list to extract a monetary value as an integer."""
         text = " ".join(text_list).strip()
         match = re.search(r'\$([\d,]+)', text)
         if match:
@@ -149,18 +186,10 @@ class ImdbFilmSpider(scrapy.Spider):
                 return None
         return None
 
-    def extract_awards(self, awards_text):
-        """
-        Given a text such as "Won 3 Oscars. Another 5 wins & 10 nominations.",
-        extract the number of awards and nominations.
-        """
-        num_awards = 0
-        num_nominations = 0
-        if awards_text:
-            wins = re.search(r'(\d+)\s+wins?', awards_text)
-            nominations = re.search(r'(\d+)\s+nominations?', awards_text)
-            if wins:
-                num_awards = int(wins.group(1))
-            if nominations:
-                num_nominations = int(nominations.group(1))
-        return num_awards, num_nominations
+    def parse_actor(self, response):
+        actor_data = response.meta['actor_data']
+        popularity_text = response.css('span.starmeter-difference::text').get()
+        popularity = int(popularity_text.strip()) if popularity_text and popularity_text.strip().isdigit() else 0
+        actor_data['popularity'] = popularity
+        self.logger.info("Actor %s %s popularity: %d", actor_data['name'], actor_data['surname'], popularity)
+        yield {'actor': actor_data}
