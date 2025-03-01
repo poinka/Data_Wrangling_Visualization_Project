@@ -234,7 +234,7 @@ class ImdbFilmSpider(scrapy.Spider):
                 }
                 
                 new_films.append(film_data)
-                self.collected_films[film_key] = True
+                self.films_seen.add(film_key)
                 self.logger.info(f"Added new film: {title} ({year}) - {film_url}")
         
         return new_films
