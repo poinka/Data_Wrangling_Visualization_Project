@@ -4,7 +4,8 @@ import time
 import json
 import os
 from selenium import webdriver
-from selenium.webdriver.safari.service import Service as SafariService
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -80,7 +81,20 @@ class ImdbFilmSpider(scrapy.Spider):
         
         # Only initialize Selenium if we're in collect mode
         if self.mode == self.MODE_COLLECT:
-            self.driver = webdriver.Safari(service=SafariService())
+            chrome_options = webdriver.ChromeOptions()
+            # Add options to make Chrome more stable and faster for scraping
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--window-size=1920,1080")
+            chrome_options.add_argument("--disable-extensions")
+            chrome_options.add_argument("--proxy-server='direct://'")
+            chrome_options.add_argument("--proxy-bypass-list=*")
+            chrome_options.add_argument("--start-maximized")
+            chrome_options.add_argument("--headless")
+            
+            self.driver = webdriver.Chrome(
+                service=ChromeService(ChromeDriverManager().install()),
+                options=chrome_options
+            )
 
     def start_requests(self):
         if self.mode == self.MODE_COLLECT:
