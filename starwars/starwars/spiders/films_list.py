@@ -207,6 +207,9 @@ class ImdbFilmSpider(scrapy.Spider):
                 m = re.search(r'(\d{4})', metadata[0])
                 if m:
                     year = int(m.group(1))
+
+            if year and year < 1990:
+                continue
             
             # Skip TV Series or TV Mini Series
             film_type = film.css('span.dli-title-type-data::text').get()
@@ -404,3 +407,4 @@ class ImdbFilmSpider(scrapy.Spider):
             except ValueError:
                 return None
         return None
+ 
