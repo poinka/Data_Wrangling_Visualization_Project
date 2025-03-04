@@ -69,8 +69,8 @@ class ImdbFilmSpider(scrapy.Spider):
         }
     }
 
-    # Use a set to track actor IDs to avoid duplicate actor requests
-    actor_seen = set()
+    # Use a dict to track actor IDs and popularity to avoid duplicate actor requests
+    actor_seen = {}
     # Use a set to track collected films to avoid duplicates
     films_seen = set()
     
@@ -314,13 +314,24 @@ class ImdbFilmSpider(scrapy.Spider):
                 }
                 actors.append(actor_data)
                 if actor_id and actor_id not in self.actor_seen:
-                    self.actor_seen.add(actor_id)
+                    self.actor_seen[actor_id] = 0 # placeholder
                     yield scrapy.Request(
                         url=actor_url,
                         callback=self.parse_actor,
                         meta={'actor_data': actor_data, 'film': film},
                         dont_filter=True
                     )
+                elif actor_id and actor_id in self.actor_seen:
+                    actor_data['popularity'] = self.actor_seen[actor_id]
+                    if film:
+                        for actor in film['actors']:
+                            if actor['id'] == actor_data['id']:
+                                actor['popularity'] = actor_data['popularity']
+                                break
+                        
+                        # Save the updated film data
+                        self._update_film_in_json(film)
+
         film['actors'] = actors
 
         # Schedule awards page request
@@ -364,7 +375,7 @@ class ImdbFilmSpider(scrapy.Spider):
         popularity_text = response.css('span.starmeter-difference::text').get()
         popularity = int(popularity_text.strip()) if popularity_text and popularity_text.strip().isdigit() else 0
         actor_data['popularity'] = popularity
-        
+        self.actor_seen[actor_data['id']] = popularity
         self.logger.info(f"Actor {actor_data['name']} {actor_data['surname']} popularity: {popularity}")
         
         # If we have a film reference, update the actor in the film's data
