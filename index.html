@@ -1,0 +1,133 @@
+<!--
+
+1. выбери библиотеку для визуализации
+
+2. структура:
+    1. ✅крупный заголовок и дескриптор
+    2. ✅как мы делали анализ
+        1. ✅сколько фильмов анализировали
+        2. ✅сколько актеров анализировали
+        3. ✅как долго скрепали данные
+    3. какие фильтры использовали
+        1. по времени
+        2. по жанру
+    4. блоки с визуализацией
+        1. заголовок/вопрос
+        2. визуализация
+        3. выводы и самые интересные инсайты
+        4. и так с каждой статистикой
+ -->
+
+ <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренды в кино</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+</head>
+<body>
+    <!-- Основной контейнер -->
+    <main class="container">
+        <!-- Заголовок -->
+        <section id="header" class="section">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="title top-title">TRENDS IN</h1>
+                    <h1 class="title cinema-title">CINEMA</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <p class="description-text">We analyzed film industry to find out what's rulling it – is it genres, actors, or budget, that turn movies into blockbusters?</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Методология сбора данных -->
+        <section id="methodology" class="section">
+            <div class="row">
+                <div class="col-12">
+                    <div class="method-content">
+                        <div class="we-text-container">
+                            <h2 class="we-text">
+                                <span class="we-part">WE'</span>
+                                <span class="ve-part">ve</span>
+                            </h2>
+                        </div>
+                        <div class="method-items-container">
+                            <p class="method-item">bypassed robot.txt</p>
+                            <p class="method-item">analyzed json metadata</p>
+                            <p class="method-item">ran 1000 Claude requests</p>
+                            <p class="method-item">fabricated GraphQL queries</p>
+                            <p class="method-item">used automatic browser emulation</p>
+                            <p class="method-item">been putting laptops at work for night and day</p>
+                            <h2 class="scrap-text">to scrap IMDb</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Статистика -->
+        <section id="statistics" class="section">
+            <div class="row">
+                <div class="col-12">
+                    <div class="stats-header">
+                        <div class="stats-left">
+                            <span class="stats-text">we</span>
+                            <span class="stats-text">processed</span>
+                        </div>
+                        <div class="stats-right">
+                            <span class="stats-number">4000</span>
+                            <div class="films-container">
+                                <span class="stats-text">films</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-10 col-offset-1">
+                    <div class="stats-circles" id="physics-container">
+                        <div class="circle-item" data-circle="ranked">
+                            <img src="assets/ranked.svg" alt="Ranked">
+                        </div>
+                        <div class="circle-item" data-circle="count">
+                            <img src="assets/6000.svg" alt="6000">
+                        </div>
+                        <div class="circle-item" data-circle="actors">
+                            <img src="assets/actors.svg" alt="Actors">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Визуализация данных -->
+        <section id="visualization" class="section">
+            <div class="row">
+                <div class="col-10 col-offset-1">
+                    <div class="chart-container">
+                        <div id="bar-chart" class="chart">
+                            <div class="bar" style="height: 90%"></div>
+                            <div class="bar" style="height: 75%"></div>
+                            <div class="bar" style="height: 40%"></div>
+                            <div class="bar" style="height: 25%"></div>
+                            <div class="bar" style="height: 45%"></div>
+                            <div class="bar" style="height: 65%"></div>
+                            <div class="bar" style="height: 55%"></div>
+                            <div class="bar" style="height: 35%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
