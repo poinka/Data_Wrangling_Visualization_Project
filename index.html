@@ -9,10 +9,10 @@
         2. ✅сколько актеров анализировали
         3. ✅как долго скрепали данные
     3. какие фильтры использовали
-        1. по времени
+        1. ✅по времени
         2. по жанру
     4. блоки с визуализацией
-        1. заголовок/вопрос
+        1. кастомный заголовок/вопрос
         2. визуализация
         3. выводы и самые интересные инсайты
         4. и так с каждой статистикой
@@ -102,6 +102,45 @@
                         <div class="circle-item" data-circle="actors">
                             <img src="assets/actors.svg" alt="Actors">
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Time Interval Section -->
+        <section id="time-interval" class="section">
+            <div class="row">
+                <div class="col-5">
+                    <p class="description-text">We focused on films released between these years to capture modern cinema trends</p>
+                </div>
+            </div>
+            <div class="row full-width-row">
+                <div class="full-width-container">
+                    <div class="years-container">
+                        <svg class="years-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
+                            <!-- Define a mask for the quasar effect -->
+                            <defs>
+                                <mask id="quasar-mask">
+                                    <!-- The quasar fill as white (visible) in mask -->
+                                    <path id="quasar-mask-path" d="M0,250 L1000,250 L1000,250 L0,250 Z" fill="white" />
+                                </mask>
+                                <!-- Define gradient for quasar fill -->
+                                <linearGradient id="quasarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#fff700;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#d0ff00;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Define invisible lines that drive the animation -->
+                            <line id="static-line" x1="0" y1="250" x2="1000" y2="250" stroke="transparent" stroke-width="0" />
+                            <line id="rotating-line" x1="0" y1="250" x2="1000" y2="250" stroke="transparent" stroke-width="0" />
+                            
+                            <!-- Quasar fill between the lines with gradient -->
+                            <path id="quasar-fill" d="M0,250 L1000,250 L1000,250 L0,250 Z" fill="url(#quasarGradient)" class="quasar-effect" />
+                            
+                            <!-- Time SVG image with mask applied -->
+                            <image href="assets/time.svg" width="100%" height="100%" mask="url(#quasar-mask)"/>
+                        </svg>
                     </div>
                 </div>
             </div>

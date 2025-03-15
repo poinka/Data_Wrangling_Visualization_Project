@@ -414,6 +414,10 @@ body {
         width: 35vw;
         height: 35vw;
     }
+
+    .year-text {
+        font-size: 80px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -490,10 +494,86 @@ body {
     opacity: 0;
 }
 
-/* Mobile adjustments for circles */
-@media (max-width: 768px) {
-    .circle-item {
-        width: 35vw;
-        height: 35vw;
+/* Секция временного интервала */
+.time-description {
+    font-size: 2rem;
+    font-weight: 400;
+    text-align: left;
+    line-height: 1.3;
+    color: #fff;
+    margin-bottom: 2rem;
+}
+  
+.years-container {
+    width: 100%;
+    height: 70vh; /* Adjusted for better proportions */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: visible; /* Ensures content isn't trimmed */
+}
+  
+.years-svg {
+    width: 100%;
+    height: 100%;
+    background-color: transparent; /* Changed from black to transparent */
+    overflow: visible; /* Ensures nothing gets trimmed */
+}
+
+.quasar-effect {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#quasar-fill {
+    opacity: 1; /* Slightly transparent to see the effect better */
+}
+
+/* Анимированное состояние */
+.years-container.animated .quasar-effect {
+    opacity: 1;
+}
+
+.years-container.animated {
+    opacity: 1;
+}
+
+/* Animation for quasar opening */
+@keyframes quasarOpen {
+    0% {
+        d: path('M0,250 L1000,250 L1000,250 L0,250 Z');
     }
+    50% {
+        d: path('M0,200 L1000,200 L1000,300 L0,300 Z');
+    }
+    100% {
+        d: path('M0,150 L1000,150 L1000,350 L0,350 Z');
+    }
+}
+
+/* Apply the animation when animated class is added */
+.years-container.animated #quasar-mask-path {
+    animation: none; /* Remove CSS animation - let JS handle it */
+}
+
+/* Ensure the quasar fill matches the mask for visual consistency */
+.years-container.animated #quasar-fill {
+    animation: none; /* Remove CSS animation - let JS handle it */
+}
+
+/* Full width components for quasar */
+.full-width-row {
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    width: 100vw;
+    max-width: 100vw;
+    position: relative;
+}
+
+.full-width-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    overflow: visible;
 }

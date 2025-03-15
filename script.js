@@ -44,6 +44,90 @@ function handleScroll() {
     
     // Анимируем столбцы диаграммы
     animateChartBars();
+    
+    // Анимируем секцию временного интервала
+    animateQuasarEffect();
+}
+
+/**
+ * Анимирует эффект квазара при прокрутке
+ */
+function animateQuasarEffect() {
+    const yearsContainer = document.querySelector('.years-container');
+    const staticLine = document.getElementById('static-line');
+    const rotatingLine = document.getElementById('rotating-line');
+    const quasarFill = document.getElementById('quasar-fill');
+    const quasarMaskPath = document.getElementById('quasar-mask-path');
+    
+    if (isInViewport(yearsContainer) && !yearsContainer.classList.contains('animated')) {
+        // Добавляем класс для запуска CSS-анимаций
+        yearsContainer.classList.add('animated');
+        
+        // Начальное положение линий
+        const startY = 250;
+        const svgWidth = 1000;
+        
+        // Initial state - both lines horizontal
+        let currentAngle = 0;
+        const targetAngle = 40; // Maximum rotation angle
+        const duration = 1000; // Animation duration in ms
+        const startTime = Date.now();
+        
+        // Функция обновления заливки между линиями
+        function updateQuasarFill() {
+            // Calculate progress (0 to 1)
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Calculate current angle based on progress (easing function)
+            const easedProgress = easeOutQuad(progress);
+            currentAngle = easedProgress * targetAngle;
+            
+            // If animation is complete, stop requesting frames
+            if (progress >= 1) {
+                // Set final state and don't request another frame
+                const finalAngle = targetAngle;
+                const rotatingYLeft = startY + svgWidth * Math.tan(finalAngle * Math.PI / 180) / 2;
+                const rotatingYRight = startY - svgWidth * Math.tan(finalAngle * Math.PI / 180) / 2;
+                updateQuasarPath(startY, rotatingYLeft, rotatingYRight, svgWidth);
+                return;
+            }
+            
+            // Calculate y-positions based on angle - REVERSED DIRECTION
+            const rotatingYLeft = startY + svgWidth * Math.tan(currentAngle * Math.PI / 180) / 2;
+            const rotatingYRight = startY - svgWidth * Math.tan(currentAngle * Math.PI / 180) / 2;
+            
+            // Update path connections
+            updateQuasarPath(startY, rotatingYLeft, rotatingYRight, svgWidth);
+            
+            // Continue animation until complete
+            requestAnimationFrame(updateQuasarFill);
+        }
+        
+        // Helper function to update path
+        function updateQuasarPath(staticY, rotatingYLeft, rotatingYRight, width) {
+            // Update rotating line position - left endpoint down, right endpoint up
+            rotatingLine.setAttribute('y1', rotatingYLeft);
+            rotatingLine.setAttribute('y2', rotatingYRight);
+            
+            // Create a proper closed polygon path
+            const pathData = `M0,${rotatingYLeft} L${width},${rotatingYRight} L${width},${staticY} L0,${staticY} Z`;
+            
+            // Update both the fill and mask
+            quasarFill.setAttribute('d', pathData);
+            if (quasarMaskPath) {
+                quasarMaskPath.setAttribute('d', pathData);
+            }
+        }
+        
+        // Easing function for smoother animation
+        function easeOutQuad(t) {
+            return t * (2 - t);
+        }
+        
+        // Запускаем анимацию
+        updateQuasarFill();
+    }
 }
 
 /**
