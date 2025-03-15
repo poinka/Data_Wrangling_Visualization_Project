@@ -10,7 +10,7 @@
         3. ✅как долго скрепали данные
     3. какие фильтры использовали
         1. ✅по времени
-        2. по жанру
+        2. ✅по жанру
     4. блоки с визуализацией
         1. кастомный заголовок/вопрос
         2. визуализация
@@ -111,7 +111,7 @@
         <section id="time-interval" class="section">
             <div class="row">
                 <div class="col-5">
-                    <p class="description-text">We focused on films released between these years to capture modern cinema trends</p>
+                    <p class="description-text">We focused on films released at least from 90s to capture modern cinema trends</p>
                 </div>
             </div>
             <div class="row full-width-row">
@@ -141,6 +141,33 @@
                             <!-- Time SVG image with mask applied -->
                             <image href="assets/time.svg" width="100%" height="100%" mask="url(#quasar-mask)"/>
                         </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters Section -->
+        <section id="filters" class="section">
+            <div class="row">
+                <div class="col-5">
+                    <p class="description-text">We filtered out the following categories to focus on actual theatrical films:</p>
+                </div>
+            </div>
+            <div class="row full-width-row">
+                <div class="full-width-container">
+                    <div class="filters-container">
+                        <div class="filter-item" data-filter="tv-shows">
+                            <div class="filter-text">TV-SHOWS</div>
+                            <div class="filter-line"></div>
+                        </div>
+                        <div class="filter-item" data-filter="documentaries">
+                            <div class="filter-text">DOCUMENTARIES</div>
+                            <div class="filter-line"></div>
+                        </div>
+                        <div class="filter-item" data-filter="short-films">
+                            <div class="filter-text">SHORT FILMS</div>
+                            <div class="filter-line"></div>
+                        </div>
                     </div>
                 </div>
             </div>

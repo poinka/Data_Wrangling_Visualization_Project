@@ -47,6 +47,9 @@ function handleScroll() {
     
     // Анимируем секцию временного интервала
     animateQuasarEffect();
+    
+    // Анимируем фильтры с эффектом зачеркивания
+    animateFilters();
 }
 
 /**
@@ -171,6 +174,23 @@ function animateChartBars() {
                 bar.style.animation = 'growBar 1.5s forwards';
                 bar.classList.add('animated');
             }, index * 100);
+        }
+    });
+}
+
+/**
+ * Анимирует зачеркивание фильтров при прокрутке
+ */
+function animateFilters() {
+    const filterItems = document.querySelectorAll('.filter-item');
+    
+    filterItems.forEach((item, index) => {
+        // Check if element is in viewport and not yet animated
+        if (isInViewport(item) && !item.classList.contains('animated')) {
+            // Add a delay between each filter animation
+            setTimeout(() => {
+                item.classList.add('animated');
+            }, index * 300); // 300ms delay between each item
         }
     });
 }
