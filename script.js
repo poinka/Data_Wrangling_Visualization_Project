@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализируем физику
     initPhysics();
+
+    // Инициализируем графики
+    initCharts();
 });
 
 /**
@@ -50,6 +53,33 @@ function handleScroll() {
     
     // Анимируем фильтры с эффектом зачеркивания
     animateFilters();
+    
+    // Add visualization sections animation
+    const vizSections = document.querySelectorAll('.visualization-section');
+    vizSections.forEach(section => {
+        if (isInViewport(section) && !section.classList.contains('animated')) {
+            section.classList.add('animated');
+            const chart = section.querySelector('canvas');
+            if (chart) {
+                chart.style.opacity = '0';
+                setTimeout(() => {
+                    chart.style.transition = 'opacity 0.8s ease';
+                    chart.style.opacity = '1';
+                }, 300);
+            }
+            
+            const insight = section.querySelector('.insight-box');
+            if (insight) {
+                insight.style.opacity = '0';
+                insight.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    insight.style.transition = 'all 0.8s ease';
+                    insight.style.opacity = '1';
+                    insight.style.transform = 'translateY(0)';
+                }, 600);
+            }
+        }
+    });
 }
 
 /**
@@ -201,10 +231,15 @@ function animateFilters() {
  * @returns {boolean} - true, если элемент виден
  */
 function isInViewport(element) {
+    if (!element) return false;
     const rect = element.getBoundingClientRect();
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+    
+    // Consider element in viewport if its top is in the bottom 80% of the screen
+    // or if its bottom is in the top 80% of the screen
     return (
-        rect.top <= (window.innerHeight || document.documentElement.clientHeight) * 0.8 &&
-        rect.bottom >= 0
+        (rect.top >= 0 && rect.top <= windowHeight * 0.8) ||
+        (rect.bottom >= windowHeight * 0.2 && rect.bottom <= windowHeight)
     );
 }
 
@@ -417,4 +452,149 @@ function initPhysics() {
         requestAnimationFrame(updateCircles);
     }
     updateCircles();
+}
+
+function initCharts() {
+    // Chart configurations
+    const chartConfigs = {
+        genreChart: {
+            type: 'bar',
+            data: {
+                labels: ['Action', 'Adventure', 'Comedy', 'Drama', 'Horror'],
+                datasets: [{
+                    label: 'Average Box Office (Millions $)',
+                    data: [450, 420, 280, 200, 150],
+                    backgroundColor: '#00FF7F',
+                    borderColor: '#00FF7F',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                animation: {
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#fff', font: { size: 14 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff', font: { size: 14 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#fff', font: { size: 14 } }
+                    }
+                }
+            }
+        },
+        decadeChart: {
+            type: 'line',
+            data: {
+                labels: ['1990s', '2000s', '2010s', '2020s'],
+                datasets: [{
+                    label: 'Number of Blockbusters',
+                    data: [25, 45, 75, 30],
+                    borderColor: '#00FF7F',
+                    backgroundColor: 'rgba(0, 255, 127, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#00FF7F'
+                }]
+            },
+            options: {
+                animation: {
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#fff', font: { size: 14 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff', font: { size: 14 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#fff', font: { size: 14 } }
+                    }
+                }
+            }
+        },
+        actorChart: {
+            type: 'bar',
+            data: {
+                labels: ['Tom Cruise', 'Robert Downey Jr.', 'Samuel L. Jackson', 'Leonardo DiCaprio', 'Brad Pitt'],
+                datasets: [{
+                    label: 'Total Box Office (Billions $)',
+                    data: [11, 9.8, 8.5, 7.2, 6.8],
+                    backgroundColor: '#00FF7F',
+                    borderColor: '#00FF7F',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                animation: {
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#fff', font: { size: 14 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#fff', font: { size: 14 } }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff', font: { size: 14 } }
+                    }
+                }
+            }
+        }
+    };
+
+    // Initialize charts when they become visible
+    const observerCallback = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const chartId = entry.target.id;
+                const config = chartConfigs[chartId];
+                if (config) {
+                    const ctx = entry.target.getContext('2d');
+                    new Chart(ctx, config);
+                    observer.unobserve(entry.target);
+                }
+            }
+        });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+        threshold: 0.1
+    });
+
+    // Observe each chart canvas
+    Object.keys(chartConfigs).forEach(chartId => {
+        const canvas = document.getElementById(chartId);
+        if (canvas) {
+            observer.observe(canvas);
+        }
+    });
 }

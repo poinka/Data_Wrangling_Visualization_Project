@@ -665,3 +665,110 @@ body {
         height: 6px; /* Reduced thickness from 8px to 6px for mobile */
     }
 }
+
+/* Visualization Sections */
+.visualization-section {
+    padding: 8vh 0;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+    position: relative;
+}
+
+.visualization-section:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50vw;
+    right: -50vw;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(0, 255, 127, 0.03) 0%, transparent 70%);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.visualization-section.animated:before {
+    opacity: 1;
+}
+
+.visualization-section.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.viz-question {
+    font-size: 7.5vw;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -3px;
+    margin-bottom: 8vh;
+    background: linear-gradient(45deg, #fff, rgba(255,255,255,0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    transform: translateX(-3vw);
+}
+
+.viz-container {
+    width: 100%;
+    height: 65vh;
+    margin: 5vh 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.viz-container:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 127, 0.2), transparent);
+}
+
+.viz-container canvas {
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.insight-box {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2.5rem;
+    border-radius: 15px;
+    margin-top: 4vh;
+    opacity: 0;
+    transform: translateY(20px);
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.insight-text {
+    font-size: 1.8rem;
+    font-weight: 300;
+    line-height: 1.4;
+    color: #fff;
+}
+
+/* Media Queries for Visualization Sections */
+@media (max-width: 768px) {
+    .viz-question {
+        font-size: 11vw;
+        transform: translateX(0);
+    }
+    
+    .viz-container {
+        height: 55vh;
+        padding: 1.5rem;
+    }
+    
+    .insight-text {
+        font-size: 1.4rem;
+    }
+}

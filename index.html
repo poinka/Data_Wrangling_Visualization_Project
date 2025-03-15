@@ -1,24 +1,4 @@
-<!--
-
-1. выбери библиотеку для визуализации
-
-2. структура:
-    1. ✅крупный заголовок и дескриптор
-    2. ✅как мы делали анализ
-        1. ✅сколько фильмов анализировали
-        2. ✅сколько актеров анализировали
-        3. ✅как долго скрепали данные
-    3. какие фильтры использовали
-        1. ✅по времени
-        2. ✅по жанру
-    4. блоки с визуализацией
-        1. кастомный заголовок/вопрос
-        2. визуализация
-        3. выводы и самые интересные инсайты
-        4. и так с каждой статистикой
- -->
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -27,6 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="assets/favicon.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
     <!-- Основной контейнер -->
@@ -173,25 +155,71 @@
             </div>
         </section>
 
-        <!-- Визуализация данных -->
-        <section id="visualization" class="section">
+        <!-- Визуализация данных -->        
+         <section id="visualization-1" class="section visualization-section">
             <div class="row">
-                <div class="col-10 col-offset-1">
-                    <div class="chart-container">
-                        <div id="bar-chart" class="chart">
-                            <div class="bar" style="height: 90%"></div>
-                            <div class="bar" style="height: 75%"></div>
-                            <div class="bar" style="height: 40%"></div>
-                            <div class="bar" style="height: 25%"></div>
-                            <div class="bar" style="height: 45%"></div>
-                            <div class="bar" style="height: 65%"></div>
-                            <div class="bar" style="height: 55%"></div>
-                            <div class="bar" style="height: 35%"></div>
-                        </div>
+                <h2 class="viz-question">DO GENRES AFFECT BOX OFFICE?</h2>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="viz-container">
+                        <canvas id="genreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <div class="insight-box">
+                        <p class="insight-text">Action and Adventure genres consistently outperform others, generating 45% more revenue on average</p>
                     </div>
                 </div>
             </div>
         </section>
+
+        <section id="visualization-2" class="section visualization-section">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="viz-question">WHICH DECADE HAD THE MOST HITS?</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="viz-container">
+                        <canvas id="decadeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <div class="insight-box">
+                        <p class="insight-text">2010s dominated with blockbusters, showing 3x more high-grossing films than previous decades</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualization-3" class="section visualization-section">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="viz-question">WHO ARE THE MOST PROFITABLE ACTORS?</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="viz-container">
+                        <canvas id="actorChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <div class="insight-box">
+                        <p class="insight-text">Tom Cruise leads with $11B total box office, followed closely by Robert Downey Jr. at $9.8B</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script src="script.js"></script>
