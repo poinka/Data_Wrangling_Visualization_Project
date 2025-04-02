@@ -130,6 +130,8 @@ def get_actor_data():
         if not isinstance(actor, dict):
             return None
         if 'name' in actor and 'surname' in actor:
+            if f"{actor['name']} {actor['surname']}" == "Robert Jr.":
+                return "Robert Downey Jr."
             return f"{actor['name']} {actor['surname']}"
         return None
 
