@@ -3,6 +3,8 @@ import pandas as pd
 import json
 import numpy as np
 from flask_cors import CORS
+import plotly.io as pio
+
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)  # Enable CORS to allow frontend requests
@@ -92,33 +94,20 @@ def get_genre_data():
     })
 
 @app.route('/api/decade_hits', methods=['GET'])
-def get_decade_hits_data():
-    # Define a "hit" based on multiple criteria
-    high_rating_threshold_imdb = 7.5    # IMDb ≥ 7.5
-    high_rating_threshold_metascore = 75  # Metascore ≥ 75
+def get_decade_avg_imdb():
+    # Группировка по десятилетиям и расчёт среднего IMDb
+    decade_avg_imdb = data.groupby('decade')['imdb'].mean().reset_index()
 
-    # Create a 'is_hit' column based on the criteria
-    data['is_hit'] = (
-        (data['profit_category'] == '3. Box Office ≥ 2x Budget') # Highly profitable
-        # &  
-        # (data['imdb'] >= high_rating_threshold_imdb) &  # High IMDb rating
-        # (data['metascore'] >= high_rating_threshold_metascore)  # High Metascore
-    )
-
-    # Count hits per decade
-    decade_hits = data[data['is_hit']].groupby('decade').size().reset_index(name='count')
-
-    # Ensure all decades are present
+    # Обеспечим наличие всех десятилетий
     decades = ['1990s', '2000s', '2010s', '2020s']
-    decade_counts = {decade: 0 for decade in decades}
-    for _, row in decade_hits.iterrows():
-        if row['decade'] in decade_counts:
-            decade_counts[row['decade']] = row['count']
+    decade_avg = {decade: None for decade in decades}
+    for _, row in decade_avg_imdb.iterrows():
+        if row['decade'] in decade_avg:
+            decade_avg[row['decade']] = round(row['imdb'], 2)
 
-    print(decade_counts)
     return jsonify({
         'labels': decades,
-        'data': [decade_counts[decade] for decade in decades]
+        'data': [decade_avg[decade] for decade in decades]
     })
 
 @app.route('/api/actors', methods=['GET'])
@@ -175,6 +164,230 @@ def get_imdb_metascore_data():
             'data': [{'x': row['imdb'], 'y': row['metascore']} for _, row in category_data.iterrows()]
         })
     return jsonify(datasets)
+
+@app.route("/animated_ratings")
+def animated_ratings():
+    import plotly.express as px
+    import pandas as pd
+    import json
+    from collections import Counter
+
+    with open("data_wrangling/data/films_metascore_unknown.json", "r", encoding="utf-8") as f:
+        films = json.load(f)
+
+    genre_counter = Counter()
+    for film in films:
+        if "genres" in film:
+            genre_counter.update(film["genres"])
+
+    top_10_genres = {genre for genre, _ in genre_counter.most_common(10)}
+
+    data = []
+    for film in films:
+        if "genres" in film and film["imdb"] and film["metascore"]:
+            imdb_rounded = round(film["imdb"] * 2) / 2
+            metascore_rounded = round(film["metascore"] / 5) * 5
+            for genre in film["genres"]:
+                if genre in top_10_genres:
+                    data.append({"genre": genre, "rating_type": "IMDb", "score": imdb_rounded})
+                    data.append({"genre": genre, "rating_type": "Metascore", "score": metascore_rounded / 10})
+
+    df = pd.DataFrame(data)
+
+    fig = px.histogram(
+        df,
+        x="score",
+        color="rating_type",
+        barmode="group",
+        animation_frame="genre",
+        title=" ",
+        labels={"score": "Rating ", "count": "Number of films"},
+        color_discrete_map={"IMDb": "#ff0073", "Metascore": "#7401ff"},
+        template="plotly_dark"
+    )
+
+    fig.update_layout(
+        xaxis_title="Rating",
+        yaxis_title="Number of films",
+        title_font_size=20,
+        font=dict(size=14),
+        bargap=0.1
+    )
+
+    return fig.to_html(full_html=False)
+
+@app.route("/api/stacked_avg_ratings")
+def stacked_avg_ratings():
+    import json
+    import pandas as pd
+    import plotly.graph_objects as go
+    from collections import Counter
+
+    with open("data_wrangling/data/films_metascore_unknown.json", "r", encoding="utf-8") as f:
+        films = json.load(f)
+
+    genre_counter = Counter()
+    for film in films:
+        if "genres" in film:
+            genre_counter.update(film["genres"])
+
+    top_20_genres = [genre for genre, _ in genre_counter.most_common(20)]  # Сохраняем порядок
+
+    genre_ratings = {genre: {"imdb": [], "metascore": []} for genre in top_20_genres}
+
+    for film in films:
+        if "genres" in film and film["imdb"] and film["metascore"]:
+            for genre in film["genres"]:
+                if genre in top_20_genres:
+                    genre_ratings[genre]["imdb"].append(film["imdb"])
+                    genre_ratings[genre]["metascore"].append(film["metascore"])
+
+    genre_list = []
+    imdb_list = []
+    metascore_list = []
+
+    for genre in top_20_genres:
+        imdb_scores = genre_ratings[genre]["imdb"]
+        metascore_scores = genre_ratings[genre]["metascore"]
+        if imdb_scores and metascore_scores:
+            genre_list.append(genre)
+            imdb_list.append(round(sum(imdb_scores) / len(imdb_scores), 2))
+            metascore_list.append(round((sum(metascore_scores) / len(metascore_scores)) / 10, 2))
+
+    fig = go.Figure(data=[
+        go.Bar(name="IMDb", x=genre_list, y=imdb_list, marker_color="#ff0073"),
+        go.Bar(name="Metascore(scaled)", x=genre_list, y=metascore_list, marker_color="#7401ff")
+    ])
+
+    fig.update_layout(
+        barmode="stack",
+        title=" ",
+        xaxis_title="Genre",
+        yaxis_title="Average rating",
+        template="plotly_dark",
+        font=dict(size=14)
+    )
+
+    return {
+        "data": fig.to_dict()["data"],
+        "layout": fig.to_dict()["layout"]
+    }
+
+@app.route("/api/radar_chart")
+def radar_chart():
+    try:
+        import json
+        import pandas as pd
+        import numpy as np
+        from collections import defaultdict
+        import plotly.graph_objects as go
+
+        # Загрузка данных
+        with open("data_wrangling/data/films_all_known.json", "r", encoding="utf-8") as f:
+            films = json.load(f)
+
+        # Группировка по жанрам
+        genre_revenue = defaultdict(list)
+        genre_budget = defaultdict(list)
+
+        for film in films:
+            if not film.get("genres"):
+                continue
+
+            for genre in film["genres"]:
+                if film.get("box_office"):
+                    genre_revenue[genre].append(film["box_office"])
+                if film.get("production_budget"):
+                    genre_budget[genre].append(film["production_budget"])
+
+        # Расчёт средних значений
+        avg_revenue = {genre: np.mean(values) for genre, values in genre_revenue.items()}
+        avg_budget = {genre: np.mean(values) for genre, values in genre_budget.items()}
+
+        # Объединение в DataFrame
+        genres = sorted(set(avg_budget.keys()))
+        combined_data = [
+            {
+                "Genre": genre,
+                "Avg Box Office": avg_revenue.get(genre, 0),
+                "Avg Budget": avg_budget.get(genre, 0)
+            }
+            for genre in genres
+        ]
+
+        df_combined = pd.DataFrame(combined_data)
+        df_combined = df_combined.sort_values("Avg Budget", ascending=False)
+
+        # Построение радара
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatterpolar(
+            r=df_combined["Avg Box Office"].tolist(),
+            theta=df_combined["Genre"].tolist(),
+            fill='toself',
+            name='Avg Box Office'
+        ))
+
+        fig.add_trace(go.Scatterpolar(
+            r=df_combined["Avg Budget"].tolist(),
+            theta=df_combined["Genre"].tolist(),
+            fill='toself',
+            name='Avg Budget'
+        ))
+
+        fig.update_layout(
+            template="plotly_dark",  # Тёмная тема
+            paper_bgcolor="black",   # Фон всего холста
+            plot_bgcolor="black",    # Фон области графика
+            polar=dict(
+                bgcolor="black",  # Фон круга
+                radialaxis=dict(visible=True, color="white"),  # Оси — белые
+                angularaxis=dict(color="white")               # Подписи — белые
+            ),
+            font=dict(color="white"),  # Цвет текста на графике
+            showlegend=True,
+            title=" "
+        )
+
+
+        return fig.to_json()
+
+    except Exception as e:
+        return f"Error: {e}", 500
+
+@app.route("/api/imdb_trends")
+def imdb_trends():
+    with open("data_wrangling/data/films_all_known.json", "r", encoding="utf-8") as f:
+        films = json.load(f)
+
+    # Подготовка данных
+    data = []
+    for film in films:
+        if film.get("imdb") and film.get("year"):
+            data.append({"year": film["year"], "imdb": film["imdb"]})
+
+    df = pd.DataFrame(data)
+    df["period"] = (df["year"] // 5) * 5
+
+    result = []
+    for period, group in df.groupby("period"):
+        total = len(group)
+        high = len(group[group["imdb"] > 7.0]) / total * 100
+        mid = len(group[(group["imdb"] >= 6) & (group["imdb"] <= 7.0)]) / total * 100
+        low = len(group[group["imdb"] < 6]) / total * 100
+        avg = group["imdb"].mean()
+        result.append({
+            "period": period,
+            "high_pct": round(high, 2),
+            "mid_pct": round(mid, 2),
+            "low_pct": round(low, 2),
+            "avg_rating": round(avg, 2)
+        })
+
+    return jsonify(result)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
