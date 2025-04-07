@@ -499,7 +499,7 @@ function initCharts() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Number of Hits (Box Office > 2x Budget)',
+                    label: 'Average rating',
                     data: [],
                     borderColor: '#00FF7F',
                     backgroundColor: 'rgba(0, 255, 127, 0.1)',
@@ -576,19 +576,19 @@ function initCharts() {
                     {
                         label: 'Box Office < Budget',
                         data: [],
-                        backgroundColor: '#FF0000', // Red
+                        backgroundColor: '#ff0073', // Red
                         pointRadius: 5
                     },
                     {
                         label: 'Budget ≤ Box Office < 2x Budget',
                         data: [],
-                        backgroundColor: '#FFA500', // Orange
+                        backgroundColor: '#7401ff', // Orange
                         pointRadius: 5
                     },
                     {
                         label: 'Box Office ≥ 2x Budget',
                         data: [],
-                        backgroundColor: '#008000', // Green
+                        backgroundColor: '#00ffaa', // Green
                         pointRadius: 5
                     }
                 ]
@@ -652,19 +652,19 @@ function initCharts() {
                     {
                         label: 'Box Office < Budget',
                         data: [],
-                        backgroundColor: '#FF0000', // Red
+                        backgroundColor: '#ff0073', // Red
                         pointRadius: 5
                     },
                     {
                         label: 'Budget ≤ Box Office < 2x Budget',
                         data: [],
-                        backgroundColor: '#FFA500', // Orange
+                        backgroundColor: '#7401ff', // Orange
                         pointRadius: 5
                     },
                     {
                         label: 'Box Office ≥ 2x Budget',
                         data: [],
-                        backgroundColor: '#008000', // Green
+                        backgroundColor: '#00ffaa', // Green
                         pointRadius: 5
                     }
                 ]
@@ -791,3 +791,69 @@ function initCharts() {
         }
     });
 }
+
+fetch("/api/stacked_avg_ratings")
+    .then(response => response.json())
+    .then(data => {
+        Plotly.newPlot("stackedRatingChart", data.data, data.layout, {responsive: true});
+    });
+
+fetch("/api/radar_chart")
+    .then(response => response.json())
+    .then(data => {
+        Plotly.newPlot("radarChart", data.data, data.layout);
+    });
+
+async function renderImdbTrendChart() {
+    try {
+        const response = await fetch('/api/imdb_trends');
+        const data = await response.json();
+
+        const periods = data.map(d => d.period);
+        const high = data.map(d => d.high_pct);
+        const mid = data.map(d => d.mid_pct);
+        const low = data.map(d => d.low_pct);
+
+        const traceHigh = {
+            x: periods,
+            y: high,
+            mode: 'lines+markers',
+            name: '> 7.0',
+            line: { color: '#00ffaa', width: 2 }
+        };
+
+        const traceMid = {
+            x: periods,
+            y: mid,
+            mode: 'lines+markers',
+            name: '6.0 – 7.0',
+            line: { color: '#7401ff', width: 2 }
+        };
+
+        const traceLow = {
+            x: periods,
+            y: low,
+            mode: 'lines+markers',
+            name: '< 6.0',
+            line: { color: '#ff0073', width: 2 }
+        };
+
+        const layout = {
+            title: ' ',
+            xaxis: { title: 'Year (5-year groups)', color: 'white'  },
+            yaxis: { title: 'Percentage of Films', color: 'white'  },
+            plot_bgcolor: 'black',
+            paper_bgcolor: 'black',
+            font: { color: 'white' },
+            legend: { font: { size: 14 } }
+        };
+
+        Plotly.newPlot('imdbTrendChart', [traceHigh, traceMid, traceLow], layout);
+    } catch (error) {
+        console.error("Error rendering IMDb trend chart:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    renderImdbTrendChart();
+});
