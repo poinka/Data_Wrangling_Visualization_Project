@@ -4,7 +4,9 @@ import json
 import numpy as np
 from flask_cors import CORS
 import plotly.io as pio
-
+import plotly.express as px
+import plotly.graph_objects as go
+from collections import Counter, defaultdict
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)  # Enable CORS to allow frontend requests
@@ -167,11 +169,6 @@ def get_imdb_metascore_data():
 
 @app.route("/animated_ratings")
 def animated_ratings():
-    import plotly.express as px
-    import pandas as pd
-    import json
-    from collections import Counter
-
     with open("data_wrangling/data/films_metascore_unknown.json", "r", encoding="utf-8") as f:
         films = json.load(f)
 
@@ -203,26 +200,28 @@ def animated_ratings():
         title=" ",
         labels={"score": "Rating ", "count": "Number of films"},
         color_discrete_map={"IMDb": "#ff0073", "Metascore": "#7401ff"},
-        template="plotly_dark"
+        template='none'
     )
 
     fig.update_layout(
         xaxis_title="Rating",
         yaxis_title="Number of films",
         title_font_size=20,
-        font=dict(size=14),
-        bargap=0.1
+        font=dict(size=14, color="#EAEAEA"),
+        bargap=0.1,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis_showgrid=False,
+        yaxis_showgrid=False,
+        xaxis_showline=False,
+        yaxis_showline=False,
+        transition={'duration': 500, 'easing': 'cubic-in-out'}
     )
 
-    return fig.to_html(full_html=False)
+    return fig.to_html(full_html=False, config={'displayModeBar': False})
 
 @app.route("/api/stacked_avg_ratings")
 def stacked_avg_ratings():
-    import json
-    import pandas as pd
-    import plotly.graph_objects as go
-    from collections import Counter
-
     with open("data_wrangling/data/films_metascore_unknown.json", "r", encoding="utf-8") as f:
         films = json.load(f)
 
@@ -276,12 +275,6 @@ def stacked_avg_ratings():
 @app.route("/api/radar_chart")
 def radar_chart():
     try:
-        import json
-        import pandas as pd
-        import numpy as np
-        from collections import defaultdict
-        import plotly.graph_objects as go
-
         # Загрузка данных
         with open("data_wrangling/data/films_all_known.json", "r", encoding="utf-8") as f:
             films = json.load(f)
@@ -349,7 +342,6 @@ def radar_chart():
             title=" "
         )
 
-
         return fig.to_json()
 
     except Exception as e:
@@ -385,9 +377,6 @@ def imdb_trends():
         })
 
     return jsonify(result)
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

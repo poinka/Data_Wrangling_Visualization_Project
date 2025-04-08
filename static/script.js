@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Инициализируем графики
     initCharts();
+
+    // Инициализируем анимацию счетчика
+    initNumberAnimation();
 });
 
 /**
@@ -168,8 +171,9 @@ function animateQuasarEffect() {
  * @param {string} selector - CSS селектор элементов
  * @param {string} animationName - Название анимации из CSS
  * @param {number} stagger - Задержка между анимациями последовательных элементов (мс)
+ * @param {Function} callback - Callback function to run after animation is applied
  */
-function animateOnScroll(selector, animationName, stagger = 0) {
+function animateOnScroll(selector, animationName, stagger = 0, callback = null) {
     const elements = document.querySelectorAll(selector);
     
     elements.forEach((element, index) => {
@@ -177,6 +181,11 @@ function animateOnScroll(selector, animationName, stagger = 0) {
             setTimeout(() => {
                 element.style.animation = `${animationName} 1s forwards`;
                 element.classList.add('animated');
+                
+                // Run callback if provided
+                if (callback && index === 0) { // Only for first element
+                    callback();
+                }
             }, index * stagger);
         }
     });
@@ -248,8 +257,6 @@ function initPhysics() {
         Render = Matter.Render,
         World = Matter.World,
         Bodies = Matter.Bodies,
-        Mouse = Matter.Mouse,
-        MouseConstraint = Matter.MouseConstraint,
         Constraint = Matter.Constraint,
         Body = Matter.Body,
         Events = Matter.Events;
@@ -257,7 +264,7 @@ function initPhysics() {
     const container = document.getElementById('physics-container');
     const containerRect = container.getBoundingClientRect();
 
-    // Create engine with zero gravity to keep balls afloat
+    // Create engine with zero gravity 
     const engine = Engine.create({
         gravity: { x: 0, y: 0 }
     });
@@ -274,25 +281,18 @@ function initPhysics() {
         }
     });
 
-    // Create center anchor point (invisible)
+    // Calculate positions in an equilateral triangle around center
     const centerX = containerRect.width / 2;
     const centerY = containerRect.height / 2;
-    const centerPoint = Bodies.circle(centerX, centerY, 5, {
-        isStatic: true,
-        render: { visible: false }
-    });
-
-    // Different sizes for each circle
-    const radii = [200, 160, 240]; // Keep original sizes
-    
-    // Calculate positions in an equilateral triangle around center
-    // Position the first circle (ranked) at the top
-    const triangleRadius = 150; // Distance from center to vertex
+    const radii = [200, 160, 240]; // Original sizes from previous working version
+    const triangleRadius = 150; // Original distance
     const angleStep = (Math.PI * 2) / 3;
+    
+    // Original positions array structure
     const positions = [
         { 
             x: centerX + Math.cos(0) * triangleRadius, 
-            y: centerY + Math.sin(0) * triangleRadius - 40 // Move top circle higher
+            y: centerY + Math.sin(0) * triangleRadius - 40 // Move top circle higher (original offset)
         },
         { 
             x: centerX + Math.cos(angleStep) * triangleRadius, 
@@ -304,37 +304,33 @@ function initPhysics() {
         }
     ];
 
-    const circles = document.querySelectorAll('.circle-item');
     const bodies = [];
-
-    // IMPORTANT: Swap positions to put ranked circle on top
-    // The order in HTML is: [ranked, count, actors]
-    // We want:             [ranked(top), actors(bottom left), count(bottom right)]
-    const circleOrder = [circles[1], circles[2], circles[0]]; // Reorder circles
+    const circleElements = document.querySelectorAll('.circle-item');
+    // Original element order mapping
+    const circleOrder = [circleElements[1], circleElements[2], circleElements[0]];
 
     positions.forEach((pos, i) => {
         const radius = radii[i];
+        const element = circleOrder[i]; // Get element based on original mapping
         const body = Bodies.circle(
-            pos.x,
-            pos.y,
-            radius,
+            pos.x, pos.y, radius,
             {
                 restitution: 0.5,
                 friction: 0.1,
                 density: 0.01,
                 frictionAir: 0.05,
-                element: circleOrder[i] // Use reordered circles
+                element: element // Assign DOM element reference
             }
         );
         
-        body.element = circleOrder[i];
+        body.element = element;
         body.circleRadius = radius;
         body.originalPosition = { x: pos.x, y: pos.y };
         
         bodies.push(body);
     });
 
-    // Create constraints to center anchor to keep triangle centered
+    // Create constraints to pull towards original positions
     const centerConstraints = bodies.map(body => 
         Constraint.create({
             bodyA: body,
@@ -345,36 +341,30 @@ function initPhysics() {
         })
     );
     
-    // Create triangle constraints between circles - NO GAP BETWEEN CIRCLES
+    // Create triangle constraints between circles (original logic)
     const triangleConstraints = [
         Constraint.create({
             bodyA: bodies[0],
             bodyB: bodies[1],
-            length: bodies[0].circleRadius + bodies[1].circleRadius, // No extra gap
-            stiffness: 0.005,
-            damping: 0.2,
-            render: { visible: false }
+            length: bodies[0].circleRadius + bodies[1].circleRadius, 
+            stiffness: 0.005, damping: 0.2, render: { visible: false }
         }),
         Constraint.create({
             bodyA: bodies[1],
             bodyB: bodies[2],
-            length: bodies[1].circleRadius + bodies[2].circleRadius, // No extra gap
-            stiffness: 0.005,
-            damping: 0.2,
-            render: { visible: false }
+            length: bodies[1].circleRadius + bodies[2].circleRadius, 
+            stiffness: 0.005, damping: 0.2, render: { visible: false }
         }),
         Constraint.create({
             bodyA: bodies[2],
             bodyB: bodies[0],
-            length: bodies[2].circleRadius + bodies[0].circleRadius, // No extra gap
-            stiffness: 0.005,
-            damping: 0.2,
-            render: { visible: false }
+            length: bodies[2].circleRadius + bodies[0].circleRadius, 
+            stiffness: 0.005, damping: 0.2, render: { visible: false }
         })
     ];
 
     // Add all elements to world
-    World.add(engine.world, [centerPoint, ...bodies, ...centerConstraints, ...triangleConstraints]);
+    World.add(engine.world, [...bodies, ...centerConstraints, ...triangleConstraints]);
 
     // Run the engine
     Engine.run(engine);
@@ -383,7 +373,7 @@ function initPhysics() {
     // Make the canvas pointer events none so DOM events work
     render.canvas.style.pointerEvents = 'none';
 
-    // Add hover and drag behavior
+    // Add original hover and drag behavior
     circleOrder.forEach((circle, i) => {
         const body = bodies[i];
         circle.style.transformOrigin = 'center center';
@@ -397,7 +387,7 @@ function initPhysics() {
             circle.style.transform = `translate(var(--x), var(--y))`;
         });
         
-        // Add drag with limited movement
+        // Add drag with limited movement (original logic)
         circle.addEventListener('mousedown', (e) => {
             e.preventDefault();
             
@@ -405,25 +395,18 @@ function initPhysics() {
             const startY = e.clientY;
             const startPosX = body.position.x;
             const startPosY = body.position.y;
-            const maxDragDistance = 100; // Maximum drag distance in pixels
+            const maxDragDistance = 100; // Original max drag distance
             
             const moveHandler = (moveEvent) => {
-                // Calculate desired movement
                 let deltaX = moveEvent.clientX - startX;
                 let deltaY = moveEvent.clientY - startY;
-                
-                // Limit distance of drag from original position
                 const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                 if (distance > maxDragDistance) {
                     const ratio = maxDragDistance / distance;
                     deltaX *= ratio;
                     deltaY *= ratio;
                 }
-                
-                Body.setPosition(body, {
-                    x: startPosX + deltaX,
-                    y: startPosY + deltaY
-                });
+                Body.setPosition(body, { x: startPosX + deltaX, y: startPosY + deltaY });
             };
             
             const upHandler = () => {
@@ -447,7 +430,13 @@ function initPhysics() {
             element.style.setProperty('--y', `${y}px`);
             element.style.width = `${radius * 2}px`;
             element.style.height = `${radius * 2}px`;
-            element.style.transform = `translate(${x}px, ${y}px)`;
+            // Keep hover scale logic separate
+             if (!element.style.transform.includes('scale')) {
+                 element.style.transform = `translate(${x}px, ${y}px)`;
+             } else {
+                 // If scale is applied (hover), maintain it
+                 element.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+             }
         });
         requestAnimationFrame(updateCircles);
     }
@@ -455,7 +444,21 @@ function initPhysics() {
 }
 
 function initCharts() {
-    // Chart configurations
+    // Define a modern color palette
+    const colors = {
+        primary: '#08D9D6',    // Teal/Cyan
+        secondary: '#FF2E63',  // Magenta/Pink
+        tertiary: '#FCE38A',   // Yellow
+        accent: '#95E1D3',    // Light Teal
+        text: '#EAEAEA',      // Light Gray
+        grid: 'rgba(0, 0, 0, 0)', // Transparent grid lines (removed)
+        background: 'rgba(0, 0, 0, 0)', // Fully transparent background
+        scatter1: '#FF2E63', // Magenta/Pink
+        scatter2: '#FCE38A', // Yellow
+        scatter3: '#08D9D6'  // Teal/Cyan
+    };
+
+    // Chart configurations with larger text
     const chartConfigs = {
         genreChart: {
             type: 'bar',
@@ -464,32 +467,33 @@ function initCharts() {
                 datasets: [{
                     label: 'Average Box Office (Millions $)',
                     data: [],
-                    backgroundColor: '#00FF7F',
-                    borderColor: '#00FF7F',
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
                     borderWidth: 1
                 }]
             },
             options: {
                 animation: {
-                    duration: 2000,
-                    easing: 'easeOutQuart'
+                    duration: 1500,
+                    easing: 'easeOutCubic'
                 },
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#fff', font: { size: 14 } }
+                        labels: { color: colors.text, font: { size: 16 } } // Larger text
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } }
+                        // Revert Y-axis grid to use transparent color, like other working charts
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } } // Larger text
                     },
                     x: {
-                        grid: { display: false },
-                        ticks: { color: '#fff', font: { size: 14 } }
+                        grid: { display: false }, // Keep X grid hidden
+                        ticks: { color: colors.text, font: { size: 16 } } // Larger text
                     }
                 }
             }
@@ -501,33 +505,33 @@ function initCharts() {
                 datasets: [{
                     label: 'Average rating',
                     data: [],
-                    borderColor: '#00FF7F',
-                    backgroundColor: 'rgba(0, 255, 127, 0.1)',
+                    borderColor: colors.secondary,
+                    backgroundColor: 'rgba(255, 46, 99, 0.2)',
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#00FF7F'
+                    pointBackgroundColor: colors.secondary
                 }]
             },
             options: {
                 animation: {
-                    duration: 2000,
-                    easing: 'easeOutQuart'
+                    duration: 1500,
+                    easing: 'easeOutCubic'
                 },
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#fff', font: { size: 14 } }
+                        labels: { color: colors.text, font: { size: 16 } } // Larger text
                     }
                 },
                 scales: {
                     y: {
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } }
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } } // Larger text
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { color: '#fff', font: { size: 14 } }
+                        ticks: { color: colors.text, font: { size: 16 } } // Larger text
                     }
                 }
             }
@@ -539,32 +543,32 @@ function initCharts() {
                 datasets: [{
                     label: 'Total Box Office (Billions $)',
                     data: [],
-                    backgroundColor: '#00FF7F',
-                    borderColor: '#00FF7F',
+                    backgroundColor: colors.tertiary,
+                    borderColor: colors.tertiary,
                     borderWidth: 1
                 }]
             },
             options: {
                 indexAxis: 'y',
                 animation: {
-                    duration: 2000,
-                    easing: 'easeOutQuart'
+                    duration: 1500,
+                    easing: 'easeOutCubic'
                 },
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#fff', font: { size: 14 } }
+                        labels: { color: colors.text, font: { size: 16 } } // Larger text
                     }
                 },
                 scales: {
                     y: {
                         grid: { display: false },
-                        ticks: { color: '#fff', font: { size: 14 } }
+                        ticks: { color: colors.text, font: { size: 16, weight: 'bold' } } // Larger text
                     },
                     x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } }
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } } // Larger text
                     }
                 }
             }
@@ -576,33 +580,33 @@ function initCharts() {
                     {
                         label: 'Box Office < Budget',
                         data: [],
-                        backgroundColor: '#ff0073', // Red
-                        pointRadius: 5
+                        backgroundColor: colors.scatter1,
+                        pointRadius: 6
                     },
                     {
                         label: 'Budget ≤ Box Office < 2x Budget',
                         data: [],
-                        backgroundColor: '#7401ff', // Orange
-                        pointRadius: 5
+                        backgroundColor: colors.scatter2,
+                        pointRadius: 6
                     },
                     {
                         label: 'Box Office ≥ 2x Budget',
                         data: [],
-                        backgroundColor: '#00ffaa', // Green
-                        pointRadius: 5
+                        backgroundColor: colors.scatter3,
+                        pointRadius: 6
                     }
                 ]
             },
             options: {
                 animation: {
-                    duration: 2000,
-                    easing: 'easeOutQuart'
+                    duration: 1500,
+                    easing: 'easeOutCubic'
                 },
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#fff', font: { size: 14 } }
+                        labels: { color: colors.text, font: { size: 16 } } // Larger text
                     },
                     tooltip: {
                         callbacks: {
@@ -623,11 +627,11 @@ function initCharts() {
                         title: {
                             display: true,
                             text: 'Production Budget ($M)',
-                            color: '#fff',
-                            font: { size: 14 }
+                            color: colors.text,
+                            font: { size: 16 }
                         },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } },
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } },
                         min: 1
                     },
                     y: {
@@ -635,11 +639,11 @@ function initCharts() {
                         title: {
                             display: true,
                             text: 'Box Office ($M)',
-                            color: '#fff',
-                            font: { size: 14 }
+                            color: colors.text,
+                            font: { size: 16 }
                         },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } },
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } },
                         min: 1
                     }
                 }
@@ -652,33 +656,33 @@ function initCharts() {
                     {
                         label: 'Box Office < Budget',
                         data: [],
-                        backgroundColor: '#ff0073', // Red
-                        pointRadius: 5
+                        backgroundColor: colors.scatter1,
+                        pointRadius: 6
                     },
                     {
                         label: 'Budget ≤ Box Office < 2x Budget',
                         data: [],
-                        backgroundColor: '#7401ff', // Orange
-                        pointRadius: 5
+                        backgroundColor: colors.scatter2,
+                        pointRadius: 6
                     },
                     {
                         label: 'Box Office ≥ 2x Budget',
                         data: [],
-                        backgroundColor: '#00ffaa', // Green
-                        pointRadius: 5
+                        backgroundColor: colors.scatter3,
+                        pointRadius: 6
                     }
                 ]
             },
             options: {
                 animation: {
-                    duration: 2000,
-                    easing: 'easeOutQuart'
+                    duration: 1500,
+                    easing: 'easeOutCubic'
                 },
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#fff', font: { size: 14 } }
+                        labels: { color: colors.text, font: { size: 16 } } // Larger text
                     },
                     tooltip: {
                         callbacks: {
@@ -698,11 +702,11 @@ function initCharts() {
                         title: {
                             display: true,
                             text: 'IMDb Score',
-                            color: '#fff',
-                            font: { size: 14 }
+                            color: colors.text,
+                            font: { size: 16 }
                         },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } },
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } },
                         min: 0,
                         max: 10
                     },
@@ -710,11 +714,11 @@ function initCharts() {
                         title: {
                             display: true,
                             text: 'Metascore',
-                            color: '#fff',
-                            font: { size: 14 }
+                            color: colors.text,
+                            font: { size: 16 }
                         },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#fff', font: { size: 14 } },
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, font: { size: 16 } },
                         min: 0,
                         max: 100
                     }
@@ -729,23 +733,41 @@ function initCharts() {
             .then(response => response.json())
             .then(data => {
                 const config = chartConfigs[chartId];
+                if (!config) {
+                    console.warn(`No config found for chartId: ${chartId}`);
+                    return;
+                }
                 if (chartId === 'budgetBoxOfficeChart' || chartId === 'imdbMetascoreChart') {
                     // For scatter plots, data is an array of datasets
                     config.data.datasets.forEach((dataset, index) => {
-                        dataset.data = data[index].data;
+                        if (data[index] && data[index].data) {
+                             dataset.data = data[index].data;
+                        } else {
+                            console.warn(`Missing data for dataset index ${index} in ${chartId}`);
+                        }
                     });
                 } else {
                     // For bar and line charts
-                    config.data.labels = data.labels;
-                    config.data.datasets[0].data = data.data;
+                    if (data.labels && data.data) {
+                        config.data.labels = data.labels;
+                        config.data.datasets[0].data = data.data;
+                    } else {
+                        console.warn(`Missing labels or data for ${chartId}`);
+                    }
                 }
                 const canvas = document.getElementById(chartId);
                 if (canvas) {
                     const ctx = canvas.getContext('2d');
-                    new Chart(ctx, config);
+                    // Clear previous chart instance if exists
+                    if (canvas.chartInstance) {
+                         canvas.chartInstance.destroy();
+                    }
+                    canvas.chartInstance = new Chart(ctx, config); // Store instance
+                } else {
+                     console.warn(`Canvas element not found for ${chartId}`);
                 }
             })
-            .catch(error => console.error(`Error fetching data for ${chartId}:`, error));
+            .catch(error => console.error(`Error fetching/rendering data for ${chartId}:`, error));
     };
 
     // Initialize charts when they become visible
@@ -773,14 +795,21 @@ function initCharts() {
                     default:
                         return;
                 }
-                initializeChart(chartId, apiEndpoint);
-                observer.unobserve(entry.target);
+                // Check if chart needs initialization (e.g., not already initialized)
+                // Simple check: see if canvas has data associated or a chart instance
+                const canvas = document.getElementById(chartId);
+                if (canvas && !canvas.chartInstance) { 
+                    initializeChart(chartId, apiEndpoint);
+                }
+                // Keep observing for potential re-intersection if needed, or unobserve
+                // For simplicity, let's keep observing unless behavior demands otherwise
+                 // observer.unobserve(entry.target);
             }
         });
     };
 
     const observer = new IntersectionObserver(observerCallback, {
-        threshold: 0.1
+        threshold: 0.1 // Trigger when 10% visible
     });
 
     // Observe each chart canvas
@@ -790,19 +819,170 @@ function initCharts() {
             observer.observe(canvas);
         }
     });
+
+    // Add resize listener specifically for Plotly charts that might need it
+    window.addEventListener('resize', () => {
+        const plotlyCharts = ['radarChart', 'imdbTrendChart', 'stackedRatingChart'];
+        plotlyCharts.forEach(chartId => {
+            const chartElement = document.getElementById(chartId);
+            // Check if the element exists and is a Plotly plot
+            if (chartElement && chartElement.classList.contains('js-plotly-plot')) {
+                // Specifically for radarChart, forcefully remove inline height/width before resizing
+                if (chartId === 'radarChart') {
+                    const innerPlotlyContainer = chartElement.querySelector('div.user-select-none.svg-container');
+                    if (innerPlotlyContainer) {
+                        innerPlotlyContainer.style.height = null;
+                        innerPlotlyContainer.style.width = null;
+                    }
+                }
+
+                try {
+                    Plotly.Plots.resize(chartElement);
+                } catch (e) {
+                    console.error(`Error resizing Plotly chart ${chartId}:`, e);
+                }
+            }
+        });
+    });
 }
 
+// Update Plotly fetches with new colors and transitions
 fetch("/api/stacked_avg_ratings")
     .then(response => response.json())
-    .then(data => {
-        Plotly.newPlot("stackedRatingChart", data.data, data.layout, {responsive: true});
-    });
+    .then(chartData => {
+        // Define Plotly layout with transitions and updated colors
+        const layout = {
+            ...chartData.layout, // Keep original layout structure
+            plot_bgcolor: '#000000', // Black background
+            paper_bgcolor: '#000000', // Black background
+            font: { color: '#EAEAEA', size: 16 }, // Larger font size
+            legend: { font: { size: 18 } }, // Larger legend
+            xaxis: { 
+                ...chartData.layout.xaxis,
+                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
+                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
+                showline: false, // Hide the axis line itself
+                tickfont: { size: 16 } // Larger axis ticks
+            },
+            yaxis: {
+                ...chartData.layout.yaxis,
+                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
+                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
+                showline: false, // Hide the axis line itself
+                tickfont: { size: 16 } // Larger axis ticks
+            },
+            transition: { // Add transition for smooth updates
+                duration: 1000,
+                easing: 'cubic-in-out'
+            },
+            margin: { l: 60, r: 20, t: 40, b: 60 } // Adjust margins if needed
+        };
+        
+        // Make lines and markers thicker
+        chartData.data.forEach(trace => {
+            if (trace.line) trace.line.width = 6; // Extra thick lines
+            if (trace.marker) {
+                trace.marker.size = 14; // Extra large markers
+                if (trace.marker.line) trace.marker.line.width = 3; // Thicker marker borders
+            }
+        });
+
+        // Override colors
+        if (chartData.data[0]) chartData.data[0].marker.color = '#08D9D6'; // Teal
+        if (chartData.data[1]) chartData.data[1].marker.color = '#FF2E63'; // Magenta
+
+        Plotly.newPlot("stackedRatingChart", chartData.data, layout, {responsive: true, displayModeBar: false});
+    })
+    .catch(error => console.error('Error fetching/rendering stackedRatingChart:', error));
 
 fetch("/api/radar_chart")
     .then(response => response.json())
-    .then(data => {
-        Plotly.newPlot("radarChart", data.data, data.layout);
-    });
+    .then(chartData => {
+        // Define Plotly layout with transitions and updated colors
+        const layout = {
+            ...chartData.layout,
+            polar: {
+                ...chartData.layout.polar,
+                bgcolor: '#000000', // Black background
+                angularaxis: {
+                    ...chartData.layout.polar.angularaxis,
+                    linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
+                    gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
+                    tickfont: { size: 16 }, // Larger axis ticks
+                    showgrid: false, // Remove grid completely
+                    showticklabels: true, // Keep tick labels
+                    gridcolor: 'rgba(0, 0, 0, 0)', // Ensure grid is transparent
+                },
+                radialaxis: {
+                    ...chartData.layout.polar.radialaxis,
+                    linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
+                    gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
+                    showgrid: false, // Remove grid completely
+                    showline: true, // Show axis line
+                    tickfont: { color: '#EAEAEA', size: 16 } // Larger axis ticks
+                }
+            },
+            paper_bgcolor: '#000000', // Black background
+            plot_bgcolor: '#000000', // Ensure plot background is black
+            font: { color: '#EAEAEA', size: 16 }, // Larger font size
+            legend: { font: { size: 18 } }, // Larger legend
+            transition: { // Add improved transition
+                duration: 1500,
+                easing: 'cubic-in-out'
+            },
+            autosize: false, // Disable autosize since we're setting explicit dimensions
+            height: 800, // Set VERY LARGE fixed height - this is the key change
+            width: 1000,  // Set VERY LARGE fixed width
+            margin: { 
+                l: 120, // Larger left margin 
+                r: 200, // Much larger right margin to prevent legend trimming
+                t: 60,  // Keep top margin the same
+                b: 60,  // Keep bottom margin the same
+                autoexpand: true // Enable auto-expansion of margins to fit legend
+            }
+        };
+
+        // Make lines and markers thicker
+        chartData.data.forEach(trace => {
+            if (!trace.marker) trace.marker = {}; // Ensure marker object exists
+            if (!trace.line) trace.line = {}; // Ensure line object exists
+            
+            trace.line.width = 6; // Extra thick lines
+            trace.marker.size = 14; // Extra large markers
+        });
+        
+        // Override trace colors if needed, ensuring objects exist
+        if (chartData.data[0]) {
+            chartData.data[0].marker.color = 'rgba(8, 217, 214, 0.7)'; 
+            chartData.data[0].line.color = '#08D9D6';
+        }
+        if (chartData.data[1]) {
+            chartData.data[1].marker.color = 'rgba(255, 46, 99, 0.7)'; 
+            chartData.data[1].line.color = '#FF2E63';
+        }
+
+        Plotly.newPlot("radarChart", chartData.data, layout, {responsive: true, displayModeBar: false});
+        
+        // Direct DOM manipulation to center the radar chart after it's created
+        setTimeout(() => {
+            const radarChart = document.getElementById('radarChart');
+            if (radarChart) {
+                // Make the parent container a flex container
+                radarChart.style.display = 'flex';
+                radarChart.style.justifyContent = 'center';
+                radarChart.style.alignItems = 'center';
+                
+                // Find the SVG container and force center it
+                const svgContainer = radarChart.querySelector('.svg-container');
+                if (svgContainer) {
+                    svgContainer.style.margin = '0 auto';
+                    svgContainer.style.left = '0';
+                    svgContainer.style.position = 'relative';
+                }
+            }
+        }, 100); // Small delay to ensure the chart is fully rendered
+    })
+    .catch(error => console.error('Error fetching/rendering radarChart:', error));
 
 async function renderImdbTrendChart() {
     try {
@@ -814,12 +994,14 @@ async function renderImdbTrendChart() {
         const mid = data.map(d => d.mid_pct);
         const low = data.map(d => d.low_pct);
 
+        // Updated trace colors and sizes
         const traceHigh = {
             x: periods,
             y: high,
             mode: 'lines+markers',
             name: '> 7.0',
-            line: { color: '#00ffaa', width: 2 }
+            line: { color: '#08D9D6', width: 6 }, // Teal, extra thick line
+            marker: { color: '#08D9D6', size: 14 } // Extra large markers
         };
 
         const traceMid = {
@@ -827,7 +1009,8 @@ async function renderImdbTrendChart() {
             y: mid,
             mode: 'lines+markers',
             name: '6.0 – 7.0',
-            line: { color: '#7401ff', width: 2 }
+            line: { color: '#FCE38A', width: 6 }, // Yellow, extra thick line
+            marker: { color: '#FCE38A', size: 14 } // Extra large markers
         };
 
         const traceLow = {
@@ -835,20 +1018,43 @@ async function renderImdbTrendChart() {
             y: low,
             mode: 'lines+markers',
             name: '< 6.0',
-            line: { color: '#ff0073', width: 2 }
+            line: { color: '#FF2E63', width: 6 }, // Magenta, extra thick line
+            marker: { color: '#FF2E63', size: 14 } // Extra large markers
         };
 
+        // Updated layout with transitions and colors
         const layout = {
             title: ' ',
-            xaxis: { title: 'Year (5-year groups)', color: 'white'  },
-            yaxis: { title: 'Percentage of Films', color: 'white'  },
-            plot_bgcolor: 'black',
-            paper_bgcolor: 'black',
-            font: { color: 'white' },
-            legend: { font: { size: 14 } }
+            xaxis: { 
+                title: 'Year (5-year groups)', 
+                color: '#EAEAEA',
+                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
+                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
+                showline: false, // Hide the axis line itself
+                zerolinecolor: 'rgba(234, 234, 234, 0.9)', // More visible zero line
+                tickfont: { size: 16 } // Larger axis ticks
+            },
+            yaxis: { 
+                title: 'Percentage of Films', 
+                color: '#EAEAEA',
+                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
+                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
+                showline: false, // Hide the axis line itself
+                zerolinecolor: 'rgba(234, 234, 234, 0.9)', // More visible zero line
+                tickfont: { size: 16 } // Larger axis ticks
+            },
+            plot_bgcolor: '#000000', // Black background
+            paper_bgcolor: '#000000', // Black background
+            font: { color: '#EAEAEA', size: 16 }, // Larger font size
+            legend: { font: { size: 18 } }, // Larger legend
+            transition: { // Add transition
+                duration: 1000,
+                easing: 'cubic-in-out'
+            },
+            margin: { l: 60, r: 20, t: 40, b: 60 }
         };
 
-        Plotly.newPlot('imdbTrendChart', [traceHigh, traceMid, traceLow], layout);
+        Plotly.newPlot('imdbTrendChart', [traceHigh, traceMid, traceLow], layout, {responsive: true, displayModeBar: false});
     } catch (error) {
         console.error("Error rendering IMDb trend chart:", error);
     }
@@ -857,3 +1063,48 @@ async function renderImdbTrendChart() {
 document.addEventListener("DOMContentLoaded", function () {
     renderImdbTrendChart();
 });
+
+/**
+ * Инициализирует анимацию счетчика для числа 4000
+ */
+function initNumberAnimation() {
+    const numberElement = document.querySelector('.stats-number');
+    if (!numberElement) return;
+
+    const targetNumber = 4000;
+    const startNumber = 1000;
+    const duration = 2000; // 2 seconds
+    let animationStarted = false;
+
+    const animateCount = (timestamp) => {
+        let startTime = null;
+        const step = (currentTime) => {
+            if (!startTime) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+            const currentNumber = Math.floor(progress * (targetNumber - startNumber) + startNumber);
+            numberElement.textContent = currentNumber.toLocaleString(); // Format number if needed
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                numberElement.textContent = targetNumber.toLocaleString(); // Ensure final number is exact
+            }
+        };
+        requestAnimationFrame(step);
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !animationStarted) {
+                animationStarted = true;
+                numberElement.textContent = startNumber.toLocaleString(); // Start from 1000
+                animateCount();
+                observer.unobserve(numberElement); // Stop observing once animated
+            }
+        });
+    }, {
+        threshold: 0.5 // Trigger when 50% of the element is visible
+    });
+
+    observer.observe(numberElement);
+}

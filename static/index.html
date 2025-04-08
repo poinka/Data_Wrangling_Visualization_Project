@@ -6,9 +6,9 @@
     <title>Trends in Cinema</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="assets/favicon.png" type="image/png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="lib/matter.min.js"></script>
+    <script src="lib/chart.js"></script>
+    <script src="lib/plotly.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -110,7 +110,7 @@
                                 <!-- Define gradient for quasar fill -->
                                 <linearGradient id="quasarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                     <stop offset="0%" style="stop-color:#fff700;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#d0ff00;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#84ff00;stop-opacity:1" />
                                 </linearGradient>
                             </defs>
                             
@@ -212,7 +212,7 @@
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
-                        <p class="insight-text">IMDb and Metascore are closely aligned (correlation: 0.72), with profitable films often rated higher. Still, box office doesn’t always reflect true success</p>
+                        <p class="insight-text">IMDb and Metascore are closely aligned (correlation: 0.72), with profitable films often rated higher. Still, box office doesn't always reflect true success</p>
                     </div>
                 </div>
             </div>
@@ -231,7 +231,7 @@
                 <div class="col-5">
                     <div class="insight-box">
                         <p class="insight-text">
-                            When judging quality by budget or box office, the film’s genre must be considered
+                            When judging quality by budget or box office, the film's genre must be considered
                         </p>
                     </div>
                 </div>
@@ -273,6 +273,66 @@
                 <div class="col-5">
                     <div class="insight-box">
                         <p class="insight-text">Older films tend to have higher average ratings, which is worth considering</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualization-budget-box" class="section visualization-section">
+            <div class="row">
+                <h2 class="viz-question">BUDGET VS BOX OFFICE</h2>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="viz-container">
+                        <canvas id="budgetBoxOfficeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <div class="insight-box">
+                        <p class="insight-text">Most films fall into the category where box office is less than 2x the budget, but high-budget hits (>$100M) often achieve significant returns.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualization-genre-revenue" class="section visualization-section">
+            <div class="row">
+                <h2 class="viz-question">TOP 5 GENRES BY AVERAGE BOX OFFICE</h2>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="viz-container" style="height: 500px;"> <!-- Adjusted height for bar chart -->
+                        <canvas id="genreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <div class="insight-box">
+                        <p class="insight-text">Action and Adventure dominate the box office, reflecting audience preference for spectacle.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualization-top-actors" class="section visualization-section">
+            <div class="row">
+                <h2 class="viz-question">TOP 5 ACTORS BY TOTAL BOX OFFICE</h2>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="viz-container" style="height: 500px;"> <!-- Adjusted height for horizontal bar chart -->
+                        <canvas id="actorChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-5">
+                    <div class="insight-box">
+                        <p class="insight-text">Established actors associated with major franchises significantly boost a film's financial success.</p>
                     </div>
                 </div>
             </div>

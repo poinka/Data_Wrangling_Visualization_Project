@@ -167,16 +167,21 @@ body {
 .method-item:nth-child(6) { font-weight: 800; } /* extrabold */
 
 .scrap-text {
-    font-size: 13rem; /* 190px equivalent in rem */
+    font-size: 12vw; /* Adjusted font size to fit screen width */
+    width: 100vw; /* Make element exactly viewport width */
+    overflow: hidden; /* Hide any overflow so text stays within the screen */
     font-weight: 900;
     margin-top: 2rem;
-    transform: translateX(-50px); /* Начальное состояние для анимации */
     opacity: 0;
-    line-height: 0.8;
-    width: 100vw; /* Full viewport width */
-    max-width: 100vw;
-    position: relative;
-    left: 0;
+    line-height: 0.9;
+    text-align: left;
+    display: block; /* Ensure it takes full width */
+    white-space: nowrap; /* Force text to remain on a single line */
+}
+
+/* Keep animations */
+.scrap-text.animated {
+    opacity: 1;
 }
 
 /* Статистика */
@@ -206,7 +211,7 @@ body {
 }
 
 .stats-number {
-    font-size: 20vw;
+    font-size: clamp(10rem, 15vw, 23rem); /* Much larger size */
     font-weight: 900;
     line-height: 0.7;
     display: block;
@@ -244,7 +249,7 @@ body {
 
 .bar {
     width: 10%;
-    background-color: #00FF7F;
+    background-color: #555;
     margin: 0 0.5%;
     height: 0; /* Начальное состояние для анимации */
 }
@@ -271,7 +276,7 @@ body {
 }
 
 .green {
-    background-color: #00FF7F;
+    background-color: #555;
     color: #000;
 }
 
@@ -377,7 +382,8 @@ body {
     }
     
     .scrap-text {
-        font-size: 8rem;
+        font-size: 10vw; /* Adjusted for mobile to fit screen width */
+        width: 100vw;
     }
 
     .stats-header {
@@ -451,7 +457,8 @@ body {
     }
     
     .scrap-text {
-        font-size: 6rem;
+        font-size: 8vw; /* Adjusted for smaller screens */
+        width: 100vw;
     }
     
     .method-items-container {
@@ -673,6 +680,7 @@ body {
     transform: translateY(30px);
     transition: all 0.8s ease;
     position: relative;
+    margin: 8vh 0; /* Reduced vertical margin */
 }
 
 .visualization-section:before {
@@ -682,7 +690,7 @@ body {
     left: -50vw;
     right: -50vw;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(0, 255, 127, 0.03) 0%, transparent 70%);
+    background: none; /* Remove the green radial gradient */
     z-index: -1;
     opacity: 0;
     transition: opacity 1s ease;
@@ -698,28 +706,39 @@ body {
 }
 
 .viz-question {
-    font-size: 7.5vw;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -3px;
-    margin-bottom: 8vh;
+    font-size: 7.5vw; /* Reverted to viewport-relative size */
+    font-weight: 900; /* Reverted */
+    line-height: 1; /* Reverted */
+    letter-spacing: -3px; /* Reverted */
+    text-transform: uppercase;
+    margin-bottom: 6vh; /* Adjusted margin */
+    /* Using gradient text effect again */
     background: linear-gradient(45deg, #fff, rgba(255,255,255,0.7));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-transform: uppercase;
-    transform: translateX(-3vw);
+    /* Keep alignment and animation properties */
+    position: relative;
+    padding-left: 0;
+    text-align: left;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.visualization-section.animated .viz-question {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .viz-container {
     width: 100%;
-    height: 65vh;
-    margin: 5vh 0;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 3rem;
+    height: 700px;
     position: relative;
+    background-color: transparent; 
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 2rem;
     overflow: hidden;
 }
 
@@ -730,7 +749,7 @@ body {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 127, 0.2), transparent);
+    background: none;
 }
 
 .viz-container canvas {
@@ -739,22 +758,26 @@ body {
 }
 
 .insight-box {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2.5rem;
-    border-radius: 15px;
-    margin-top: 4vh;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+    border-left: 4px solid transparent;
     opacity: 0;
     transform: translateY(20px);
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
+    transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s; /* Added delay */
+}
+
+.visualization-section.animated .insight-box {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .insight-text {
-    font-size: 1.8rem;
-    font-weight: 300;
+    font-size: 2rem;
+    font-weight: 400;
     line-height: 1.4;
-    color: #fff;
+    color: #ddd;
 }
 
 /* Media Queries for Visualization Sections */
@@ -772,4 +795,49 @@ body {
     .insight-text {
         font-size: 1.4rem;
     }
+}
+
+/* Remove the duplicate rules for #radarChart.viz-container */
+/* Increase height specifically for the RADAR plot container (BUDGET VS BOX OFFICE) */
+#radarChart.viz-container {
+    height: 80vh; /* Use viewport height to make it significantly taller */
+    min-height: 600px; /* Ensure a minimum height */
+    display: flex; /* Use flexbox to help inner element fill space */
+    justify-content: center;
+    align-items: center;
+    overflow: visible !important; /* Ensure nothing gets cut off */
+}
+
+/* Force the inner SVG container of the radar chart to fill the height */
+#radarChart > div.user-select-none.svg-container {
+    height: 800px !important; /* Force a large fixed height */
+    width: 800px !important;  /* Force a large fixed width */
+    margin: 0 auto !important; /* Force center alignment */
+    position: relative !important; /* Ensure position doesn't get overridden */
+    left: 0 !important; /* Ensure no offset */
+    transform: translateX(0) !important; /* Ensure no transform offset */
+}
+
+/* Make sure the main plot stays centered */
+#radarChart .plotly {
+    text-align: center !important;
+    margin: 0 auto !important;
+}
+
+/* Adjust height for mobile if needed */
+@media (max-width: 768px) {
+    #radarChart.viz-container {
+        height: 70vh; /* Maintain large height on mobile */
+        min-height: 500px;
+    }
+    #radarChart > div.user-select-none.svg-container {
+        height: 600px !important; /* Force fixed height on mobile */
+        width: 90% !important;   /* Use percentage width on mobile */
+    }
+}
+
+/* Force transparency and no border for the first chart */
+#genreChart {
+    background-color: transparent !important;
+    border: none !important;
 }
