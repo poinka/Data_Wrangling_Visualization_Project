@@ -18,6 +18,14 @@ For the second checkpoint, our team:
 - Production budget
 - Popularity of the cast
 4. Added interactive graphs visualizing these dependencies to the website
-
+Below are attached screenshots of our website:
+![ ](img/scr1.png)
+![ ](img/scr2.png)
+![ ](img/scr3.png)
+![ ](img/scr4.png)
+![ ](img/scr5.png)
+![ ](img/scr6.png)
+![ ](img/scr7.png)
+![ ](img/scr8.png)
 $ flask run --port=8080
 $ http://127.0.0.1:8000
