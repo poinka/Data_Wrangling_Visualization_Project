@@ -18,7 +18,9 @@ For the second checkpoint, our team:
 - Production budget
 - Popularity of the cast
 4. Added interactive graphs visualizing these dependencies to the website
+##Screenshots of the website
 Below are attached screenshots of our website:
+
 ![ ](img/scr1.png)
 ![ ](img/scr2.png)
 ![ ](img/scr3.png)
