@@ -3,7 +3,7 @@
 At this stage, our team:
 1. Collected data from the imdb website about 4,000 films using Scrapy
 2. Cleaned and preprocessed data about films
-3. Prepared Exploratory Data Analysis including analysis of the completeness of the dataset
+3. Prepared Advanced Data Analysis including analysis of the completeness of the dataset
 
 ## Checkpoint 2:
 For the second checkpoint, our team:
@@ -18,6 +18,25 @@ For the second checkpoint, our team:
 - Production budget
 - Popularity of the cast
 4. Added interactive graphs visualizing these dependencies to the website
+
+## Repository structure:
+### In the data_wrangling folder you can find files created before checkpoint 1:
+- In the *starwars* folder there is code for web scraping of the site. 
+- Scraped data is in the *films_data.json* file
+- In the *data_preparation.ipynb* and *Advanced_Data_Analysis.ipynb* files there is code for cleaning and analyzing the dataset
+- Cleaned and grouped datasets can be found in the *data* folder
+### In the img folder.
+There are screenshots of our site
+### In the static folder there are: 
+- *assets* folder - it contains various icons and pictures for the site
+- *lib* folder - it contains library files for the site
+- *index.html*
+- *script.js*
+- *Styles.css*
+### Also in the main repository is the file app.py 
+This file contains all the main functions for the site
+
+
 ##Screenshots of the website
 Below are attached screenshots of our website:
 
