@@ -37,7 +37,7 @@ There are screenshots of our site
 This file contains all the main functions for the site
 
 
-##Screenshots of the website
+## Screenshots of the website
 Below are attached screenshots of our website:
 
 ![ ](img/scr1.png)
