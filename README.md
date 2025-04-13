@@ -34,7 +34,7 @@ There are screenshots of our site
 - *script.js*
 - *Styles.css*
 ### Also in the main repository is the file app.py 
-This file contains all the main functions for the site
+This file contains all the main functions and backend part for the site
 
 
 ## Screenshots of the website
@@ -48,5 +48,28 @@ Below are attached screenshots of our website:
 ![ ](img/scr6.png)
 ![ ](img/scr7.png)
 ![ ](img/scr8.png)
-$ flask run --port=8080
-$ http://127.0.0.1:8000
+
+
+## How to Run the Project
+To run the project locally, follow these steps:
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-folder>
+2. Set up a virtual environment (optional but recommended):
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+3. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. Run the Flask application:
+    ```bash
+    flask run --port=8080
+    ```
+5. Open your browser and navigate to:
+    http://127.0.0.1:8080
