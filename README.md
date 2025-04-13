@@ -25,7 +25,7 @@ For the second checkpoint, our team:
 - Scraped data is in the *films_data.json* file
 - In the *data_preparation.ipynb* and *Advanced_Data_Analysis.ipynb* files there is code for cleaning and analyzing the dataset
 - Cleaned and grouped datasets can be found in the *data* folder
-### In the img folder.
+### The img folder:
 There are screenshots of our site
 ### In the static folder there are: 
 - *assets* folder - it contains various icons and pictures for the site
