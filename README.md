@@ -49,8 +49,40 @@ Below are attached screenshots of our website:
 ![ ](img/scr7.png)
 ![ ](img/scr8.png)
 
+## How to Build and Run the Project Using Docker Compose
 
-## How to Run the Project
+1. Ensure you have Docker and Docker Compose installed on your system. You can download them from [Docker's official website](https://www.docker.com/).
+
+2. Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd <repository-folder>
+    ```
+
+3. Ensure you have a `docker-compose.yml` file in the root of your project with the following content:
+    ```yaml
+    services:
+      app:
+        build:
+          context: .
+        ports:
+          - "8080:8080"
+    ```
+
+4. Build and start the services:
+    ```bash
+    docker-compose up --build
+    ```
+
+5. Open your browser and navigate to:
+    http://127.0.0.1:8080
+
+6. To stop the services, press `Ctrl+C` and run:
+    ```bash
+    docker-compose down
+    ```
+
+## How to Run the Project if you don't have a docker
 To run the project locally, follow these steps:
 
 1. Clone the repository:
