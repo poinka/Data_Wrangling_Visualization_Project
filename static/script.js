@@ -482,6 +482,14 @@ function initCharts() {
                 plugins: {
                     legend: {
                         labels: { color: colors.text, font: { size: 16 } } // Larger text
+                    },
+                    onHover: (event, chartElement) => {
+                        const canvas = event.native.target; // Get the canvas element
+                        if (chartElement.length) {
+                            canvas.style.cursor = 'pointer'; // Change cursor to pointer when hovering over legend
+                        } else {
+                            canvas.style.cursor = 'default'; // Reset cursor when not hovering over legend
+                        }
                     }
                 },
                 scales: {
@@ -522,6 +530,14 @@ function initCharts() {
                 plugins: {
                     legend: {
                         labels: { color: colors.text, font: { size: 16 } } // Larger text
+                    },
+                    onHover: (event, chartElement) => {
+                        const canvas = event.native.target; // Get the canvas element
+                        if (chartElement.length) {
+                            canvas.style.cursor = 'pointer'; // Change cursor to pointer when hovering over legend
+                        } else {
+                            canvas.style.cursor = 'default'; // Reset cursor when not hovering over legend
+                        }
                     }
                 },
                 scales: {
@@ -559,6 +575,14 @@ function initCharts() {
                 plugins: {
                     legend: {
                         labels: { color: colors.text, font: { size: 16 } } // Larger text
+                    },
+                    onHover: (event, chartElement) => {
+                        const canvas = event.native.target; // Get the canvas element
+                        if (chartElement.length) {
+                            canvas.style.cursor = 'pointer'; // Change cursor to pointer when hovering over legend
+                        } else {
+                            canvas.style.cursor = 'default'; // Reset cursor when not hovering over legend
+                        }
                     }
                 },
                 scales: {
@@ -618,6 +642,14 @@ function initCharts() {
                                 label += `Budget: $${context.raw.x.toFixed(2)}M, Box Office: $${context.raw.y.toFixed(2)}M`;
                                 return label;
                             }
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        const canvas = event.native.target; // Get the canvas element
+                        if (chartElement.length) {
+                            canvas.style.cursor = 'pointer'; // Change cursor to pointer when hovering over legend
+                        } else {
+                            canvas.style.cursor = 'default'; // Reset cursor when not hovering over legend
                         }
                     }
                 },
@@ -694,6 +726,14 @@ function initCharts() {
                                 label += `IMDb: ${context.raw.x.toFixed(1)}, Metascore: ${context.raw.y}`;
                                 return label;
                             }
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        const canvas = event.native.target; // Get the canvas element
+                        if (chartElement.length) {
+                            canvas.style.cursor = 'pointer'; // Change cursor to pointer when hovering over legend
+                        } else {
+                            canvas.style.cursor = 'default'; // Reset cursor when not hovering over legend
                         }
                     }
                 },
