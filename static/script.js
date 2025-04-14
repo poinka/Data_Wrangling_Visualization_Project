@@ -455,7 +455,8 @@ function initCharts() {
         background: 'rgba(0, 0, 0, 0)', // Fully transparent background
         scatter1: '#FF2E63', // Magenta/Pink
         scatter2: '#FCE38A', // Yellow
-        scatter3: '#08D9D6'  // Teal/Cyan
+        scatter3: '#08D9D6',  // Teal/Cyan
+        tooltipBackground: 'rgba(50, 50, 50, 0.9)' // Dark tooltip background
     };
 
     // Chart configurations with larger text
@@ -602,22 +603,25 @@ function initCharts() {
             data: {
                 datasets: [
                     {
-                        label: 'Box Office < Budget',
+                        label: 'Box Office < Budget (Financial Loss)',
                         data: [],
                         backgroundColor: colors.scatter1,
-                        pointRadius: 6
+                        pointRadius: 8,
+                        pointHoverRadius: 12
                     },
                     {
-                        label: 'Budget ≤ Box Office < 2x Budget',
+                        label: 'Moderate Success (1-2x Return)',
                         data: [],
                         backgroundColor: colors.scatter2,
-                        pointRadius: 6
+                        pointRadius: 8,
+                        pointHoverRadius: 12
                     },
                     {
-                        label: 'Box Office ≥ 2x Budget',
+                        label: 'Blockbuster Success (>2x Return)',
                         data: [],
                         backgroundColor: colors.scatter3,
-                        pointRadius: 6
+                        pointRadius: 8,
+                        pointHoverRadius: 12
                     }
                 ]
             },
@@ -630,17 +634,22 @@ function initCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: colors.text, font: { size: 16 } } // Larger text
+                        labels: { 
+                            color: colors.text, 
+                            font: { size: 18 },
+                            padding: 15
+                        }
                     },
                     tooltip: {
+                        backgroundColor: colors.tooltipBackground,
+                        titleColor: colors.text,
+                        bodyColor: colors.text,
                         callbacks: {
                             label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += `Budget: $${context.raw.x.toFixed(2)}M, Box Office: $${context.raw.y.toFixed(2)}M`;
-                                return label;
+                                const title = context.raw.title || 'Unknown Film';
+                                const budget = context.parsed.x.toFixed(1);
+                                const boxOffice = context.parsed.y.toFixed(1);
+                                return `${title} (Budget: $${budget}M, Box Office: $${boxOffice}M)`;
                             }
                         }
                     },
@@ -660,10 +669,14 @@ function initCharts() {
                             display: true,
                             text: 'Production Budget ($M)',
                             color: colors.text,
-                            font: { size: 16 }
+                            font: { size: 18 }
                         },
                         grid: { color: colors.grid },
-                        ticks: { color: colors.text, font: { size: 16 } },
+                        ticks: { 
+                            color: colors.text, 
+                            font: { size: 16 },
+                            padding: 8
+                        },
                         min: 1
                     },
                     y: {
@@ -672,16 +685,20 @@ function initCharts() {
                             display: true,
                             text: 'Box Office ($M)',
                             color: colors.text,
-                            font: { size: 16 }
+                            font: { size: 18 }
                         },
                         grid: { color: colors.grid },
-                        ticks: { color: colors.text, font: { size: 16 } },
+                        ticks: { 
+                            color: colors.text, 
+                            font: { size: 16 },
+                            padding: 8
+                        },
                         min: 1
                     }
                 }
             }
         },
-        imdbMetascoreChart: {
+        imdbMetascoreChart: { 
             type: 'scatter',
             data: {
                 datasets: [
@@ -689,19 +706,22 @@ function initCharts() {
                         label: 'Box Office < Budget',
                         data: [],
                         backgroundColor: colors.scatter1,
-                        pointRadius: 6
+                        pointRadius: 8,
+                        pointHoverRadius: 12
                     },
                     {
                         label: 'Budget ≤ Box Office < 2x Budget',
                         data: [],
                         backgroundColor: colors.scatter2,
-                        pointRadius: 6
+                        pointRadius: 8,
+                        pointHoverRadius: 12
                     },
                     {
                         label: 'Box Office ≥ 2x Budget',
                         data: [],
                         backgroundColor: colors.scatter3,
-                        pointRadius: 6
+                        pointRadius: 8,
+                        pointHoverRadius: 12
                     }
                 ]
             },
@@ -713,17 +733,14 @@ function initCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        labels: { color: colors.text, font: { size: 16 } } // Larger text
-                    },
                     tooltip: {
+                        backgroundColor: colors.tooltipBackground,
+                        titleColor: colors.text,
+                        bodyColor: colors.text,
                         callbacks: {
                             label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += `IMDb: ${context.raw.x.toFixed(1)}, Metascore: ${context.raw.y}`;
+                                const title = context.raw.title || 'Unknown Film';
+                                let label = `${title} (IMDb: ${context.parsed.x.toFixed(1)}, Metascore: ${context.parsed.y.toFixed(1)})`;
                                 return label;
                             }
                         }
@@ -739,32 +756,41 @@ function initCharts() {
                 },
                 scales: {
                     x: {
+                        type: 'linear',
                         title: {
                             display: true,
                             text: 'IMDb Score',
                             color: colors.text,
-                            font: { size: 16 }
+                            font: { size: 18 }
                         },
                         grid: { color: colors.grid },
-                        ticks: { color: colors.text, font: { size: 16 } },
-                        min: 0,
-                        max: 10
+                        ticks: { 
+                            color: colors.text, 
+                            font: { size: 16 },
+                            padding: 8
+                        },
+                        beginAtZero: true
                     },
                     y: {
+                        type: 'linear',
                         title: {
                             display: true,
                             text: 'Metascore',
                             color: colors.text,
-                            font: { size: 16 }
+                            font: { size: 18 }
                         },
                         grid: { color: colors.grid },
-                        ticks: { color: colors.text, font: { size: 16 } },
-                        min: 0,
-                        max: 100
+                        ticks: { 
+                            color: colors.text, 
+                            font: { size: 16 },
+                            padding: 8
+                        },
+                        beginAtZero: true
                     }
                 }
             }
-        }
+        },
+        // ... rest of the chart configs ...
     };
 
     // Function to fetch data and initialize a chart
@@ -930,48 +956,50 @@ function initCharts() {
 fetch("/api/stacked_avg_ratings")
     .then(response => response.json())
     .then(chartData => {
-        // Define Plotly layout with transitions and updated colors
+        // Preserve the important layout settings from backend while adding our styling
         const layout = {
-            ...chartData.layout, // Keep original layout structure
-            plot_bgcolor: '#000000', // Black background
-            paper_bgcolor: '#000000', // Black background
-            font: { color: '#EAEAEA', size: 16 }, // Larger font size
-            legend: { font: { size: 18 } }, // Larger legend
+            ...chartData.layout,
+            plot_bgcolor: '#000000',
+            paper_bgcolor: '#000000',
+            barmode: "group",
+            font: { color: '#EAEAEA', size: 18 },
             xaxis: { 
                 ...chartData.layout.xaxis,
-                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
-                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
-                showline: false, // Hide the axis line itself
-                tickfont: { size: 16 } // Larger axis ticks
+                gridcolor: 'rgba(0, 0, 0, 0)',
+                linecolor: 'rgba(234, 234, 234, 0.9)',
+                showline: true,
+                tickangle: 45,
+                tickfont: { size: 16 }
             },
-            yaxis: {
+            yaxis: { 
                 ...chartData.layout.yaxis,
-                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
-                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
-                showline: false, // Hide the axis line itself
-                tickfont: { size: 16 } // Larger axis ticks
+                gridcolor: 'rgba(0, 0, 0, 0)',
+                linecolor: 'rgba(234, 234, 234, 0.9)',
+                showline: true,
+                tickfont: { size: 16 },
+                range: [1, 10],
+                dtick: 1
             },
-            transition: { // Add transition for smooth updates
-                duration: 1000,
-                easing: 'cubic-in-out'
+            legend: { 
+                font: { size: 18 },
+                bgcolor: 'rgba(0,0,0,0)'
             },
-            margin: { l: 60, r: 20, t: 40, b: 60 } // Adjust margins if needed
+            margin: { l: 60, r: 60, t: 60, b: 120 }
         };
-        
-        // Make lines and markers thicker
-        chartData.data.forEach(trace => {
-            if (trace.line) trace.line.width = 6; // Extra thick lines
-            if (trace.marker) {
-                trace.marker.size = 14; // Extra large markers
-                if (trace.marker.line) trace.marker.line.width = 3; // Thicker marker borders
+
+        // Style the bars
+        chartData.data.forEach((trace, index) => {
+            if (index === 0) {
+                trace.marker.color = '#ff0073';  // IMDb color
+            } else {
+                trace.marker.color = '#7401ff';  // Metascore color
             }
         });
 
-        // Override colors
-        if (chartData.data[0]) chartData.data[0].marker.color = '#08D9D6'; // Teal
-        if (chartData.data[1]) chartData.data[1].marker.color = '#FF2E63'; // Magenta
-
-        Plotly.newPlot("stackedRatingChart", chartData.data, layout, {responsive: true, displayModeBar: false});
+        Plotly.newPlot("stackedRatingChart", chartData.data, layout, {
+            responsive: true,
+            displayModeBar: false
+        });
     })
     .catch(error => console.error('Error fetching/rendering stackedRatingChart:', error));
 
@@ -1074,14 +1102,13 @@ async function renderImdbTrendChart() {
         const mid = data.map(d => d.mid_pct);
         const low = data.map(d => d.low_pct);
 
-        // Updated trace colors and sizes
         const traceHigh = {
             x: periods,
             y: high,
             mode: 'lines+markers',
             name: '> 7.0',
-            line: { color: '#08D9D6', width: 6 }, // Teal, extra thick line
-            marker: { color: '#08D9D6', size: 14 } // Extra large markers
+            line: { color: '#08D9D6', width: 8 },
+            marker: { color: '#08D9D6', size: 16 }
         };
 
         const traceMid = {
@@ -1089,8 +1116,8 @@ async function renderImdbTrendChart() {
             y: mid,
             mode: 'lines+markers',
             name: '6.0 – 7.0',
-            line: { color: '#FCE38A', width: 6 }, // Yellow, extra thick line
-            marker: { color: '#FCE38A', size: 14 } // Extra large markers
+            line: { color: '#FCE38A', width: 8 },
+            marker: { color: '#FCE38A', size: 16 }
         };
 
         const traceLow = {
@@ -1098,40 +1125,41 @@ async function renderImdbTrendChart() {
             y: low,
             mode: 'lines+markers',
             name: '< 6.0',
-            line: { color: '#FF2E63', width: 6 }, // Magenta, extra thick line
-            marker: { color: '#FF2E63', size: 14 } // Extra large markers
+            line: { color: '#FF2E63', width: 8 },
+            marker: { color: '#FF2E63', size: 16 }
         };
 
-        // Updated layout with transitions and colors
         const layout = {
             title: ' ',
             xaxis: { 
                 title: 'Year (5-year groups)', 
                 color: '#EAEAEA',
-                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
-                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
-                showline: false, // Hide the axis line itself
-                zerolinecolor: 'rgba(234, 234, 234, 0.9)', // More visible zero line
-                tickfont: { size: 16 } // Larger axis ticks
+                gridcolor: 'rgba(0, 0, 0, 0)',
+                linecolor: 'rgba(234, 234, 234, 0.9)',
+                showline: false,
+                zerolinecolor: 'rgba(234, 234, 234, 0.9)',
+                tickfont: { size: 18 },
+                titlefont: { size: 20 }
             },
             yaxis: { 
                 title: 'Percentage of Films', 
                 color: '#EAEAEA',
-                gridcolor: 'rgba(0, 0, 0, 0)', // Transparent grid (removed)
-                linecolor: 'rgba(234, 234, 234, 0.9)', // More visible axis lines
-                showline: false, // Hide the axis line itself
-                zerolinecolor: 'rgba(234, 234, 234, 0.9)', // More visible zero line
-                tickfont: { size: 16 } // Larger axis ticks
+                gridcolor: 'rgba(0, 0, 0, 0)',
+                linecolor: 'rgba(234, 234, 234, 0.9)',
+                showline: false,
+                zerolinecolor: 'rgba(234, 234, 234, 0.9)',
+                tickfont: { size: 18 },
+                titlefont: { size: 20 }
             },
-            plot_bgcolor: '#000000', // Black background
-            paper_bgcolor: '#000000', // Black background
-            font: { color: '#EAEAEA', size: 16 }, // Larger font size
-            legend: { font: { size: 18 } }, // Larger legend
-            transition: { // Add transition
+            plot_bgcolor: '#000000',
+            paper_bgcolor: '#000000',
+            font: { color: '#EAEAEA', size: 18 },
+            legend: { font: { size: 20 } },
+            transition: {
                 duration: 1000,
                 easing: 'cubic-in-out'
             },
-            margin: { l: 60, r: 20, t: 40, b: 60 }
+            margin: { l: 80, r: 30, t: 40, b: 80 }
         };
 
         Plotly.newPlot('imdbTrendChart', [traceHigh, traceMid, traceLow], layout, {responsive: true, displayModeBar: false});

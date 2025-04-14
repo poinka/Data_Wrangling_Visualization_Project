@@ -157,20 +157,21 @@
             </div>
         </section>
 
-        <!-- Визуализация данных -->    
+        <!-- Data Visualization -->    
         
+        <!-- 1. Genre Analysis -->
         <section id="visualization-0" class="section visualization-section">
             <div class="row">
                 <div class="col-12">
                     <h2 class="viz-question">HOW DO RATINGS DISTRIBUTE ACROSS GENRES?</h2>
-                    <iframe src="/animated_ratings" width="100%" height="600" frameborder="0" style="border-radius: 12px;"></iframe>
+                    <iframe src="/animated_ratings" width="100%" height="700" frameborder="0" style="border-radius: 12px; aspect-ratio: 1/1; max-height: 80vh;"></iframe>
                 </div>
             </div>
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
                         <p class="insight-text">
-                             Viewers rarely give extreme ratings. Keep in mind that the average IMDb score is around 6.5, not 5.0
+                            IMDb shows audience preferences while Metascore reflects critics' opinions. Both form normal distributions, but Metascore tends to be more critical. Drama consistently receives the highest audience ratings.
                         </p>
                     </div>
                 </div>
@@ -183,14 +184,14 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                        <div id="stackedRatingChart"></div>
+                        <div id="stackedRatingChart" style="width:100%; aspect-ratio: 1/1; max-height: 80vh;"></div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
                         <p class="insight-text">
-                            Average ratings vary across genres, both for IMDb and Metascore
+                            Horror films consistently receive the lowest scores, while historical films, biographies, and dramas tend to receive the highest ratings from both critics and audiences.
                         </p>
                     </div>
                 </div>
@@ -205,7 +206,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div class="viz-container">
+                    <div class="viz-container" style="height: 700px; aspect-ratio: 1/1; max-height: 80vh;">
                         <canvas id="imdbMetascoreChart"></canvas>
                     </div>
                 </div>
@@ -213,7 +214,7 @@
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
-                        <p class="insight-text">IMDb and Metascore are closely aligned (correlation: 0.72), with profitable films often rated higher. Still, box office doesn't always reflect true success</p>
+                        <p class="insight-text">IMDb and Metascore are closely aligned (correlation: 0.72), with profitable films often rated higher. However, box office doesn't always reflect artistic success, as some critically acclaimed films perform modestly at the box office.</p>
                     </div>
                 </div>
             </div>
@@ -225,14 +226,14 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div id="radarChart"></div>
+                    <div id="radarChart" style="width:100%; height:700px; aspect-ratio: 1/1; max-height: 80vh;"></div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
                         <p class="insight-text">
-                            When judging quality by budget or box office, the film's genre must be considered
+                            Animation and Adventure films lead with ROIs of 3.8x and 3.2x respectively on mid-range budgets ($80-120M). Action films command the highest budgets (avg. $185M) but achieve moderate 2.1x returns, while Drama and Horror films operate efficiently on smaller budgets ($15-25M) with ROIs ranging from 2.5-3.0x.
                         </p>
                     </div>
                 </div>
@@ -245,13 +246,13 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div id="imdbTrendChart" style="width:100%;height:600px;"></div>
+                    <div id="imdbTrendChart" style="width:100%; aspect-ratio: 1/1; max-height: 80vh;"></div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
-                        <p class="insight-text">The percentage of blockbusters is decreasing every year (especially in the 21st century)</p>
+                        <p class="insight-text">The declining trend in IMDb ratings over time suggests either audiences have become more discerning in their expectations, or the overall thoughtfulness in film production has decreased, with a focus on quick returns over artistic merit.</p>
                     </div>
                 </div>
             </div>
@@ -265,7 +266,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div class="viz-container">
+                    <div class="viz-container" style="aspect-ratio: 1/1; max-height: 80vh;">
                         <div id="decadeChart"></div>
                     </div>
                 </div>
@@ -273,7 +274,7 @@
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
-                        <p class="insight-text">Older films tend to have higher average ratings, which is worth considering</p>
+                        <p class="insight-text">Films from earlier decades consistently score higher on IMDb, suggesting either a nostalgic bias in ratings or that these surviving classics have stood the test of time, representing the best of their era.</p>
                     </div>
                 </div>
             </div>
@@ -285,7 +286,7 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div class="viz-container">
+                    <div class="viz-container" style="aspect-ratio: 1/1; max-height: 80vh;">
                         <canvas id="budgetBoxOfficeChart"></canvas>
                     </div>
                 </div>
@@ -305,8 +306,8 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div class="viz-container" style="height: 500px;"> <!-- Adjusted height for bar chart -->
-                        <canvas id="genreChart"></canvas>
+                    <div class="viz-container" style="aspect-ratio: 1/1; max-height: 80vh;">
+                        <canvas id="genreChart" title="Average box office revenue for top-performing movie genres"></canvas>
                     </div>
                 </div>
             </div>
@@ -321,19 +322,19 @@
 
         <section id="visualization-top-actors" class="section visualization-section">
             <div class="row">
-                <h2 class="viz-question">TOP 5 ACTORS BY TOTAL BOX OFFICE</h2>
+                <h2 class="viz-question">HIGHEST-GROSSING ACTORS</h2>
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div class="viz-container" style="height: 500px;"> <!-- Adjusted height for horizontal bar chart -->
-                        <canvas id="actorChart"></canvas>
+                    <div class="viz-container" style="aspect-ratio: 1/1; max-height: 80vh;">
+                        <canvas id="actorChart" title="Cumulative box office earnings from all movies featuring each actor"></canvas>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-5">
                     <div class="insight-box">
-                        <p class="insight-text">Established actors associated with major franchises significantly boost a film's financial success.</p>
+                        <p class="insight-text">Established actors associated with major franchises significantly boost a film's financial success. Interestingly, all these actors had significant roles in MARVEL movies.</p>
                     </div>
                 </div>
             </div>

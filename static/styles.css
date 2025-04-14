@@ -740,6 +740,8 @@ body {
     padding: 20px;
     margin-bottom: 2rem;
     overflow: hidden;
+    aspect-ratio: 1/1;
+    max-height: 80vh;
 }
 
 .viz-container:before {
@@ -759,13 +761,13 @@ body {
 
 .insight-box {
     background-color: rgba(255, 255, 255, 0.1);
-    padding: 1.5rem;
+    padding: 2.5rem;
     border-radius: 8px;
     margin-top: 2rem;
     border-left: 4px solid transparent;
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s; /* Added delay */
+    transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
 }
 
 .visualization-section.animated .insight-box {
@@ -774,13 +776,13 @@ body {
 }
 
 .insight-text {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.5;
     color: #ddd;
 }
 
-/* Media Queries for Visualization Sections */
+/* Media queries for responsive design */
 @media (max-width: 768px) {
     .viz-question {
         font-size: 11vw;
@@ -788,12 +790,12 @@ body {
     }
     
     .viz-container {
-        height: 55vh;
+        height: 70vh;
         padding: 1.5rem;
     }
     
     .insight-text {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
     }
 }
 
@@ -840,4 +842,50 @@ body {
 #genreChart {
     background-color: transparent !important;
     border: none !important;
+}
+
+/* Plot-specific overrides */
+#imdbTrendChart,
+#decadeChart,
+#budgetBoxOfficeChart,
+#genreChart,
+#actorChart {
+    width: 100% !important;
+    aspect-ratio: 1/1 !important;
+    max-height: 80vh !important;
+}
+
+/* Legend hover styles */
+.legendtext[title] {
+    cursor: help !important;
+}
+
+.legendtext[title]:hover {
+    opacity: 0.8;
+}
+
+/* Chart.js legend hover styles */
+.chartjs-legend-item:hover {
+    opacity: 0.8;
+}
+
+/* Custom tooltip styles */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    background: rgba(50, 50, 50, 0.9);
+    color: #EAEAEA;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 100;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
 }

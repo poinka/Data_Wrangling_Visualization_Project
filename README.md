@@ -84,7 +84,7 @@ Below are attached screenshots of our website:
     docker-compose down
     ```
 
-## How to Run the Project if you don't have a docker
+## How to Run the Project if you don't have docker
 To run the project locally, follow these steps:
 
 1. Clone the repository:
