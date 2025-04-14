@@ -728,43 +728,52 @@ function initCharts() {
     };
 
     // Function to fetch data and initialize a chart
-    const initializeChart = (chartId, apiEndpoint) => {
+    const initializeChart = (chartId, apiEndpoint, chartType = 'chartjs') => {
         fetch(apiEndpoint)
             .then(response => response.json())
             .then(data => {
-                const config = chartConfigs[chartId];
-                if (!config) {
-                    console.warn(`No config found for chartId: ${chartId}`);
-                    return;
-                }
-                if (chartId === 'budgetBoxOfficeChart' || chartId === 'imdbMetascoreChart') {
-                    // For scatter plots, data is an array of datasets
-                    config.data.datasets.forEach((dataset, index) => {
-                        if (data[index] && data[index].data) {
-                             dataset.data = data[index].data;
-                        } else {
-                            console.warn(`Missing data for dataset index ${index} in ${chartId}`);
-                        }
-                    });
+                if (chartType === 'd3') {
+                    // Convert data to D3 format: [{ label, value }, ...]
+                    const chartData = data.labels.map((label, index) => ({
+                        label,
+                        value: data.data[index]
+                    }));
+                    if (chartId === 'decadeChart') {
+                        console.log("Creating D3 decade chart with data:", chartData);
+                        createDecadeLineChart(chartData);
+                    }
                 } else {
-                    // For bar and line charts
-                    if (data.labels && data.data) {
-                        config.data.labels = data.labels;
-                        config.data.datasets[0].data = data.data;
+                    const config = chartConfigs[chartId];
+                    if (!config) {
+                        console.warn(`No config found for chartId: ${chartId}`);
+                        return;
+                    }
+                    if (chartId === 'budgetBoxOfficeChart' || chartId === 'imdbMetascoreChart') {
+                        config.data.datasets.forEach((dataset, index) => {
+                            if (data[index] && data[index].data) {
+                                dataset.data = data[index].data;
+                            } else {
+                                console.warn(`Missing data for dataset index ${index} in ${chartId}`);
+                            }
+                        });
                     } else {
-                        console.warn(`Missing labels or data for ${chartId}`);
+                        if (data.labels && data.data) {
+                            config.data.labels = data.labels;
+                            config.data.datasets[0].data = data.data;
+                        } else {
+                            console.warn(`Missing labels or data for ${chartId}`);
+                        }
                     }
-                }
-                const canvas = document.getElementById(chartId);
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    // Clear previous chart instance if exists
-                    if (canvas.chartInstance) {
-                         canvas.chartInstance.destroy();
+                    const canvas = document.getElementById(chartId);
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        if (canvas.chartInstance) {
+                            canvas.chartInstance.destroy();
+                        }
+                        canvas.chartInstance = new Chart(ctx, config);
+                    } else {
+                        console.warn(`Canvas element not found for ${chartId}`);
                     }
-                    canvas.chartInstance = new Chart(ctx, config); // Store instance
-                } else {
-                     console.warn(`Canvas element not found for ${chartId}`);
                 }
             })
             .catch(error => console.error(`Error fetching/rendering data for ${chartId}:`, error));
@@ -776,12 +785,14 @@ function initCharts() {
             if (entry.isIntersecting) {
                 const chartId = entry.target.id;
                 let apiEndpoint;
+                let chartType = 'chartjs';
                 switch (chartId) {
                     case 'genreChart':
                         apiEndpoint = '/api/genres';
                         break;
                     case 'decadeChart':
                         apiEndpoint = '/api/decade_hits';
+                        chartType = 'd3';
                         break;
                     case 'actorChart':
                         apiEndpoint = '/api/actors';
@@ -795,15 +806,10 @@ function initCharts() {
                     default:
                         return;
                 }
-                // Check if chart needs initialization (e.g., not already initialized)
-                // Simple check: see if canvas has data associated or a chart instance
-                const canvas = document.getElementById(chartId);
-                if (canvas && !canvas.chartInstance) { 
-                    initializeChart(chartId, apiEndpoint);
+                if (apiEndpoint) {
+                    initializeChart(chartId, apiEndpoint, chartType);
+                    observer.unobserve(entry.target); // Prevent multiple initializations
                 }
-                // Keep observing for potential re-intersection if needed, or unobserve
-                // For simplicity, let's keep observing unless behavior demands otherwise
-                 // observer.unobserve(entry.target);
             }
         });
     };
@@ -1107,4 +1113,139 @@ function initNumberAnimation() {
     });
 
     observer.observe(numberElement);
+}
+
+function createDecadeLineChart(data) {
+    // Dynamically set width based on the container's width (full page width)
+    const container = d3.select("#decadeChart");
+    const containerWidth = container.node().getBoundingClientRect().width; // Get the container's width
+    const margin = { top: 30, right: 60, bottom: 20, left: 60 };
+    const width = containerWidth - margin.left - margin.right; // Scale to container width
+    const height = 500 - margin.top - margin.bottom;
+
+    // Center the SVG by ensuring the container is styled for centering
+    container.style("display", "flex").style("justify-content", "center");
+
+    // Clear previous SVG to avoid duplicates
+    container.select("svg").remove();
+
+    const svg = container
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Define scales
+        const x = d3.scalePoint()
+        .domain(data.map(d => d.label))
+        .range([0, width])
+        .padding(0.05);
+
+        const y = d3.scaleLinear()
+            .domain([6.40, 6.85])
+            .range([height, 0]);
+
+        // Define the line
+        const line = d3.line()
+            .x(d => x(d.label) + x.bandwidth() / 2) // Center the points on the x-axis
+            .y(d => y(d.value))
+            .curve(d3.curveCatmullRom);
+
+        // Draw the filled area beneath the curve
+        svg.append("path")
+        .datum(data)
+        .attr("fill", "darkred")
+        .attr("opacity", 0.5)
+        .attr("d", d3.area()
+            .x(d => x(d.label) + x.bandwidth() / 2) // Center the points on the x-axis
+            .y0(height)
+            .y1(d => y(d.value))
+            .curve(d3.curveCatmullRom)
+        );
+        // Draw the line
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "#FF2E63")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+
+        // Add points for each decade
+        svg.selectAll(".point")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class", "point")
+        .attr("cx", d => x(d.label) + x.bandwidth() / 2)
+        .attr("cy", d => y(d.value))
+        .attr("r", 5) // Radius of the points
+        .attr("fill", "#FF2E63"); // Match the curve color
+
+        // Add x-axis (decades)
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x).tickSize(0))
+            .call(g => g.select(".domain").style("display", "none")) // Remove x-axis line
+            .selectAll("text")
+            .style("fill", "#EAEAEA")
+            .style("font-size", "16px");
+
+        // Add y-axis (ratings)
+        svg.append("g")
+            .call(d3.axisLeft(y).tickSize(0))
+            .call(g => g.select(".domain").style("display", "none"))
+            .selectAll("text")
+            .style("fill", "#EAEAEA")
+            .style("font-size", "16px");            
+
+        // Add "Average rating" note
+        svg.append("rect")
+        .attr("x", width/2 - 50)
+        .attr("y", 0)
+        .attr("width", 50)
+        .attr("height", 20)
+        .attr("fill", "darkred")
+        .attr("opacity", 0.5) // Semi-transparent like the area under the curve
+        .attr("stroke", "#FF2E63") // Border color matches the curve
+        .attr("stroke-width", 2)
+
+        svg.append("text")
+            .attr("x", width/2 + 50)
+            .attr("y", 10)
+            .attr("dy", "0.35em")
+            .style("text-anchor", "middle")
+            .style("fill", "white") 
+            .style("font-size", "12px")
+            .text("Average rating");
+        
+        // Add hover effect 
+        svg.selectAll(".point")
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("r", 10) // Increase radius on hover
+            .attr("fill", "#FF2E63"); // Change color on hover
+
+            // Show exact rating as a tooltip
+            svg.append("text")
+            .attr("class", "tooltip")
+            .attr("x", d3.select(this).attr("cx"))
+            .attr("y", d3.select(this).attr("cy") - 15) // Position above the point
+            .attr("text-anchor", "middle")
+            .style("fill", "#EAEAEA")
+            .style("font-size", "12px")
+            .text(d.value.toFixed(2)); // Display the exact rating
+        })
+        .on("mouseout", function(event, d) {
+            d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("r", 5) // Reset radius
+            .attr("fill", "#FF2E63"); // Reset color
+
+            // Remove the tooltip
+            svg.selectAll(".tooltip").remove();
+        });
 }
