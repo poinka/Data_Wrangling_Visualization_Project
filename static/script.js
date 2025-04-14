@@ -729,58 +729,77 @@ function initCharts() {
 
     // Function to fetch data and initialize a chart
     const initializeChart = (chartId, apiEndpoint, chartType = 'chartjs') => {
-        fetch(apiEndpoint)
-            .then(response => response.json())
-            .then(data => {
-                if (chartType === 'd3') {
+        if (chartType === 'd3') {
+            return fetch(apiEndpoint)
+                .then(response => response.json())
+                .then(data => {
                     // Convert data to D3 format: [{ label, value }, ...]
-                    const chartData = data.labels.map((label, index) => ({
+                    let chartData = data.labels.map((label, index) => ({
                         label,
                         value: data.data[index]
                     }));
-                    if (chartId === 'decadeChart') {
-                        console.log("Creating D3 decade chart with data:", chartData);
-                        createDecadeLineChart(chartData);
-                    }
-                } else {
-                    const config = chartConfigs[chartId];
-                    if (!config) {
-                        console.warn(`No config found for chartId: ${chartId}`);
-                        return;
-                    }
-                    if (chartId === 'budgetBoxOfficeChart' || chartId === 'imdbMetascoreChart') {
-                        config.data.datasets.forEach((dataset, index) => {
-                            if (data[index] && data[index].data) {
-                                dataset.data = data[index].data;
-                            } else {
-                                console.warn(`Missing data for dataset index ${index} in ${chartId}`);
-                            }
-                        });
-                    } else {
-                        if (data.labels && data.data) {
-                            config.data.labels = data.labels;
-                            config.data.datasets[0].data = data.data;
+                    
+                    console.log("Creating D3 decade chart with data:", chartData);
+                    const chartInstance = createDecadeLineChart(chartData);
+                    return chartInstance; // Return the chart instance for animation
+                    
+                })
+                .catch(error => {
+                    console.error(`Error fetching/rendering data for ${chartId}:`, error);
+                    throw error; // Ensure errors are propagated
+                });
+        } else {
+            // Wrap Chart.js logic in a Promise
+            return new Promise((resolve, reject) => {
+                fetch(apiEndpoint)
+                    .then(response => response.json())
+                    .then(data => {
+                        const config = chartConfigs[chartId];
+                        if (!config) {
+                            console.warn(`No config found for chartId: ${chartId}`);
+                            resolve(null); // Resolve with null to indicate no chart instance
+                            return;
+                        }
+                        if (chartId === 'budgetBoxOfficeChart' || chartId === 'imdbMetascoreChart') {
+                            config.data.datasets.forEach((dataset, index) => {
+                                if (data[index] && data[index].data) {
+                                    dataset.data = data[index].data;
+                                } else {
+                                    console.warn(`Missing data for dataset index ${index} in ${chartId}`);
+                                }
+                            });
                         } else {
-                            console.warn(`Missing labels or data for ${chartId}`);
+                            if (data.labels && data.data) {
+                                config.data.labels = data.labels;
+                                config.data.datasets[0].data = data.data;
+                            } else {
+                                console.warn(`Missing labels or data for ${chartId}`);
+                            }
                         }
-                    }
-                    const canvas = document.getElementById(chartId);
-                    if (canvas) {
-                        const ctx = canvas.getContext('2d');
-                        if (canvas.chartInstance) {
-                            canvas.chartInstance.destroy();
+                        const canvas = document.getElementById(chartId);
+                        if (canvas) {
+                            const ctx = canvas.getContext('2d');
+                            if (canvas.chartInstance) {
+                                canvas.chartInstance.destroy();
+                            }
+                            canvas.chartInstance = new Chart(ctx, config);
+                            resolve(canvas.chartInstance); // Resolve with the Chart.js instance
+                        } else {
+                            console.warn(`Canvas element not found for ${chartId}`);
+                            resolve(null); // Resolve with null if canvas not found
                         }
-                        canvas.chartInstance = new Chart(ctx, config);
-                    } else {
-                        console.warn(`Canvas element not found for ${chartId}`);
-                    }
-                }
-            })
-            .catch(error => console.error(`Error fetching/rendering data for ${chartId}:`, error));
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching/rendering data for ${chartId}:`, error);
+                        reject(error); // Reject the Promise on error
+                    });
+            });
+        }
     };
 
     // Initialize charts when they become visible
     const observerCallback = (entries, observer) => {
+        const chartInstances = {}; // Store chart instances for animation
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const chartId = entry.target.id;
@@ -807,7 +826,16 @@ function initCharts() {
                         return;
                 }
                 if (apiEndpoint) {
-                    initializeChart(chartId, apiEndpoint, chartType);
+                    initializeChart(chartId, apiEndpoint, chartType)
+                        .then(chartInstance => {
+                            if (chartInstance && chartInstance.animate) {
+                                chartInstances[chartId] = chartInstance;
+                                chartInstance.animate(); // Trigger the animation for D3 charts
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`Error in observerCallback for ${chartId}:`, error);
+                        });
                     observer.unobserve(entry.target); // Prevent multiple initializations
                 }
             }
@@ -820,11 +848,17 @@ function initCharts() {
 
     // Observe each chart canvas
     Object.keys(chartConfigs).forEach(chartId => {
-        const canvas = document.getElementById(chartId);
-        if (canvas) {
-            observer.observe(canvas);
+        const element = document.getElementById(chartId);
+        if (element) {
+            observer.observe(element);
         }
     });
+
+    // Explicitly observe the decadeChart container
+    const decadeChartContainer = document.getElementById('decadeChart');
+    if (decadeChartContainer) {
+        observer.observe(decadeChartContainer);
+    }
 
     // Add resize listener specifically for Plotly charts that might need it
     window.addEventListener('resize', () => {
@@ -1148,23 +1182,37 @@ function createDecadeLineChart(data) {
 
         // Define the line
         const line = d3.line()
-            .x(d => x(d.label) + x.bandwidth() / 2) // Center the points on the x-axis
+            .x(d => x(d.label)) // Center the points on the x-axis
             .y(d => y(d.value))
             .curve(d3.curveCatmullRom);
 
+        // Create a clip-path to control the visible height
+        svg.append("defs")
+        .append("clipPath")
+        .attr("id", "clip-decade-chart")
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", 0); // Start with height 0
+
+        // Apply the clip-path to the plot elements
+        const plotGroup = svg.append("g")
+            .attr("clip-path", "url(#clip-decade-chart)");
+
         // Draw the filled area beneath the curve
-        svg.append("path")
+        plotGroup.append("path")
         .datum(data)
         .attr("fill", "darkred")
         .attr("opacity", 0.5)
         .attr("d", d3.area()
-            .x(d => x(d.label) + x.bandwidth() / 2) // Center the points on the x-axis
+            .x(d => x(d.label)) // Center the points on the x-axis
             .y0(height)
             .y1(d => y(d.value))
             .curve(d3.curveCatmullRom)
         );
         // Draw the line
-        svg.append("path")
+        plotGroup.append("path")
             .datum(data)
             .attr("fill", "none")
             .attr("stroke", "#FF2E63")
@@ -1172,12 +1220,12 @@ function createDecadeLineChart(data) {
             .attr("d", line);
 
         // Add points for each decade
-        svg.selectAll(".point")
+        plotGroup.selectAll(".point")
         .data(data)
         .enter()
         .append("circle")
         .attr("class", "point")
-        .attr("cx", d => x(d.label) + x.bandwidth() / 2)
+        .attr("cx", d => x(d.label))
         .attr("cy", d => y(d.value))
         .attr("r", 5) // Radius of the points
         .attr("fill", "#FF2E63"); // Match the curve color
@@ -1220,7 +1268,7 @@ function createDecadeLineChart(data) {
             .text("Average rating");
         
         // Add hover effect 
-        svg.selectAll(".point")
+        plotGroup.selectAll(".point")
         .on("mouseover", function(event, d) {
             d3.select(this)
             .transition()
@@ -1248,4 +1296,15 @@ function createDecadeLineChart(data) {
             // Remove the tooltip
             svg.selectAll(".tooltip").remove();
         });
+
+        // Return the SVG and clip-path for animation
+    return {
+        svg: svg,
+        animate: function() {
+            svg.select("#clip-decade-chart rect")
+                .transition()
+                .duration(3000) // Animation duration in milliseconds
+                .attr("height", height + margin.top + margin.bottom); // Expand to full height
+        }
+    };
 }
