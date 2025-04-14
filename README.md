@@ -18,6 +18,8 @@ For the second checkpoint, our team:
 - Production budget
 - Popularity of the cast
 4. Added interactive graphs visualizing these dependencies to the website
+5. Deployed Project to: https://data-wrangling-visualization-project.onrender.com/
+6. Added Docker
 
 ## Repository structure:
 ### In the data_wrangling folder you can find files created before checkpoint 1:
