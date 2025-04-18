@@ -1,60 +1,60 @@
 /**
- * Визуализация трендов в кино
- * Основной JavaScript файл
+ * Trends Visualization in Cinema
+ * Main JavaScript
  */
 
-// Ждем загрузки DOM перед выполнением скриптов
+// Wait for DOM loading
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализируем анимации
+    // Initialize Animations
     startAnimations();
     
-    // Добавляем обработчик прокрутки для анимаций при скролле
+    // Add event listener for scrolling
     window.addEventListener('scroll', handleScroll);
     
-    // Инициализируем физику
+    // Initialize physics
     initPhysics();
 
-    // Инициализируем графики
+    // Initialize plots
     initCharts();
 
-    // Инициализируем анимацию счетчика
+    // Initialize counter animation
     initNumberAnimation();
 });
 
 /**
- * Запускает начальные анимации элементов
+ * Start init animations
  */
 function startAnimations() {
     // Remove title and description animations
     // The code below replaces the previous animation code for these elements
     
-    // Анимируем блок методологии при появлении в поле зрения
+    // Animation of methodology section
     const methodSection = document.querySelector('.method-content');
     methodSection.style.animation = 'fadeIn 1.5s forwards 1s';
     
-    // Настраиваем начальное состояние статистики для последующей анимации
+    // Initial statistics
     const statsHeader = document.querySelector('.stats-header');
     statsHeader.style.animation = 'fadeIn 1.5s forwards 1s';
 }
 
 /**
- * Обрабатывает события прокрутки страницы
+ * Handle scrolling page
  */
 function handleScroll() {
-    // Анимируем элементы методологии при прокрутке
+    // Animation of methodology when scrolling
     animateOnScroll('.method-item', 'slideInLeft', 150);
     animateOnScroll('.scrap-text', 'slideInLeft', 0);
     
-    // Анимируем кружки в секции статистики
+    // Animation of circles
     animateOnScroll('.circle', 'growCircle', 300);
     
-    // Анимируем столбцы диаграммы
+    // Animation of bars in charts
     animateChartBars();
     
-    // Анимируем секцию временного интервала
+    // Animation of time interval
     animateQuasarEffect();
     
-    // Анимируем фильтры с эффектом зачеркивания
+    // Animation of filters with strikethrough
     animateFilters();
     
     // Add visualization sections animation
@@ -86,7 +86,7 @@ function handleScroll() {
 }
 
 /**
- * Анимирует эффект квазара при прокрутке
+ * Animation of Quasar Effect
  */
 function animateQuasarEffect() {
     const yearsContainer = document.querySelector('.years-container');
@@ -96,10 +96,10 @@ function animateQuasarEffect() {
     const quasarMaskPath = document.getElementById('quasar-mask-path');
     
     if (isInViewport(yearsContainer) && !yearsContainer.classList.contains('animated')) {
-        // Добавляем класс для запуска CSS-анимаций
+        // Add class with animation activation
         yearsContainer.classList.add('animated');
         
-        // Начальное положение линий
+        // Initial lines
         const startY = 250;
         const svgWidth = 1000;
         
@@ -109,7 +109,7 @@ function animateQuasarEffect() {
         const duration = 1000; // Animation duration in ms
         const startTime = Date.now();
         
-        // Функция обновления заливки между линиями
+        // Update filling between lines
         function updateQuasarFill() {
             // Calculate progress (0 to 1)
             const elapsed = Date.now() - startTime;
@@ -161,16 +161,16 @@ function animateQuasarEffect() {
             return t * (2 - t);
         }
         
-        // Запускаем анимацию
+        // Start animation
         updateQuasarFill();
     }
 }
 
 /**
- * Анимирует элементы при их появлении в поле зрения
- * @param {string} selector - CSS селектор элементов
- * @param {string} animationName - Название анимации из CSS
- * @param {number} stagger - Задержка между анимациями последовательных элементов (мс)
+ * Animates elements when they appear in the viewport
+ * @param {string} selector - CSS selector for the elements
+ * @param {string} animationName - Name of the CSS animation
+ * @param {number} stagger - Delay between animations of consecutive elements (ms)
  * @param {Function} callback - Callback function to run after animation is applied
  */
 function animateOnScroll(selector, animationName, stagger = 0, callback = null) {
@@ -192,7 +192,7 @@ function animateOnScroll(selector, animationName, stagger = 0, callback = null) 
 }
 
 /**
- * Анимирует столбцы диаграммы
+ * Animation of chart bars
  */
 function animateChartBars() {
     const chartContainer = document.querySelector('.chart-container');
@@ -202,13 +202,13 @@ function animateChartBars() {
     
     bars.forEach((bar, index) => {
         if (!bar.classList.contains('animated')) {
-            // Получаем целевую высоту из стилей
+            // Get the target height from styles
             const targetHeight = bar.style.height;
             
-            // Устанавливаем переменную CSS для анимации
+            // Set a CSS variable for the animation
             bar.style.setProperty('--final-height', targetHeight);
             
-            // Запускаем анимацию с задержкой
+            // Start the animation with a delay
             setTimeout(() => {
                 bar.style.animation = 'growBar 1.5s forwards';
                 bar.classList.add('animated');
@@ -218,7 +218,7 @@ function animateChartBars() {
 }
 
 /**
- * Анимирует зачеркивание фильтров при прокрутке
+ * Animation of strikethrough
  */
 function animateFilters() {
     const filterItems = document.querySelectorAll('.filter-item');
@@ -235,9 +235,9 @@ function animateFilters() {
 }
 
 /**
- * Проверяет, находится ли элемент в поле зрения
- * @param {Element} element - DOM элемент для проверки
- * @returns {boolean} - true, если элемент виден
+ * Check if the DOM element in the view port
+ * @param {Element} element - DOM element for check
+ * @returns {boolean} - true, if element is visible
  */
 function isInViewport(element) {
     if (!element) return false;
@@ -1202,7 +1202,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /**
- * Инициализирует анимацию счетчика для числа 4000
+ * Initialize counter for 4000
  */
 function initNumberAnimation() {
     const numberElement = document.querySelector('.stats-number');
@@ -1400,7 +1400,7 @@ function createDecadeLineChart(data) {
         animate: function() {
             svg.select("#clip-decade-chart rect")
                 .transition()
-                .duration(3000) // Animation duration in milliseconds
+                .duration(2000) // Animation duration in milliseconds
                 .attr("height", height + margin.top + margin.bottom); // Expand to full height
         }
     };

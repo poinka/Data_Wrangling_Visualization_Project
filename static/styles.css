@@ -6,7 +6,7 @@
     font-display: swap;
 }
 
-/* Общие стили */
+/* General styles */
 * {
     margin: 0;
     padding: 0;
@@ -21,7 +21,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Сетка (12 колонок) */
+/* Grid (12 columns) */
 .container {
     width: 100%;
     max-width: 1600px;
@@ -35,7 +35,7 @@ body {
     margin: 5vh 0; /* Increase row spacing */
 }
 
-/* Колонки */
+/* Columns */
 [class*="col-"] {
     padding: 0 15px;
     position: relative;
@@ -54,7 +54,7 @@ body {
 .col-11 { width: 91.66%; }
 .col-12 { width: 100%; }
 
-/* Отступы */
+/* Offsets */
 .col-offset-1 { margin-left: 8.33%; }
 .col-offset-2 { margin-left: 16.66%; }
 .col-offset-3 { margin-left: 25%; }
@@ -75,7 +75,7 @@ body {
     margin: 15vh 0; /* Add vertical spacing between sections */
 }
 
-/* Заголовок */
+/* Header */
 #header {
     text-align: center;
 }
@@ -97,7 +97,7 @@ body {
     font-size: 22vw;
 }
 
-/* Описание */
+/* Description */
 .description-text {
     position: relative;
     width: 100%;
@@ -109,7 +109,7 @@ body {
     margin-top: 2rem;
 }
 
-/* Методология */
+/* Methodology */
 .method-content {
     max-width: 100%;
     opacity: 0;
@@ -155,7 +155,7 @@ body {
 .method-item {
     font-size: 3rem;
     margin-bottom: 1rem;
-    transform: translateX(-50px); /* Начальное состояние для анимации */
+    transform: translateX(-50px); /* Initial state for animation */
     opacity: 0;
 }
 
@@ -184,7 +184,7 @@ body {
     opacity: 1;
 }
 
-/* Статистика */
+/* Statistics */
 .stats-header {
     display: flex;
     width: calc(100% + 30px);
@@ -232,7 +232,7 @@ body {
     margin-top: 20px;
 }
 
-/* Визуализация */
+/* Visualization */
 .chart-container {
     width: 100%;
     height: 80vh;
@@ -251,7 +251,7 @@ body {
     width: 10%;
     background-color: #555;
     margin: 0 0.5%;
-    height: 0; /* Начальное состояние для анимации */
+    height: 0; /* Initial state for animation */
 }
 
 .circle {
@@ -265,7 +265,7 @@ body {
     align-items: center;
     font-size: 4vw;
     font-weight: bold;
-    transform: scale(0); /* Начальное состояние для анимации */
+    transform: scale(0); /* Initial state for animation */
     opacity: 0;
     position: relative;
 }
@@ -297,7 +297,7 @@ body {
     align-self: flex-end;
 }
 
-/* Анимации */
+/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -330,7 +330,7 @@ body {
     to { height: var(--final-height); }
 }
 
-/* Адаптивность */
+/* Responsiveness */
 @media (max-width: 768px) {
     .method-item {
         font-size: 1.5rem;
@@ -501,7 +501,7 @@ body {
     opacity: 0;
 }
 
-/* Секция временного интервала */
+/* Time interval section */
 .time-description {
     font-size: 2rem;
     font-weight: 400;
@@ -537,7 +537,7 @@ body {
     opacity: 1; /* Slightly transparent to see the effect better */
 }
 
-/* Анимированное состояние */
+/* Animated state */
 .years-container.animated .quasar-effect {
     opacity: 1;
 }
@@ -889,3 +889,4 @@ body {
     left: 50%;
     transform: translateX(-50%);
 }
+

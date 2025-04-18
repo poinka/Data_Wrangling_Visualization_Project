@@ -325,11 +325,11 @@ def stacked_avg_ratings():
 @app.route("/api/radar_chart")
 def radar_chart():
     try:
-        # Загрузка данных
+        # Data loading
         with open("data_wrangling/data/films_all_known.json", "r", encoding="utf-8") as f:
             films = json.load(f)
 
-        # Группировка по жанрам
+        # Genre grouping
         genre_revenue = defaultdict(list)
         genre_budget = defaultdict(list)
 
@@ -343,11 +343,11 @@ def radar_chart():
                 if film.get("production_budget"):
                     genre_budget[genre].append(film["production_budget"])
 
-        # Расчёт средних значений
+        # Calculating of mean values
         avg_revenue = {genre: np.mean(values) for genre, values in genre_revenue.items()}
         avg_budget = {genre: np.mean(values) for genre, values in genre_budget.items()}
 
-        # Объединение в DataFrame
+        # Concatenation to DataFrame
         genres = sorted(set(avg_budget.keys()))
         combined_data = [
             {
@@ -407,7 +407,7 @@ def imdb_trends():
     with open("data_wrangling/data/films_all_known.json", "r", encoding="utf-8") as f:
         films = json.load(f)
 
-    # Подготовка данных
+    # Data Preparation
     data = []
     for film in films:
         if film.get("imdb") and film.get("year"):
