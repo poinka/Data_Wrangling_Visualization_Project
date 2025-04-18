@@ -104,7 +104,7 @@ def get_decade_avg_imdb():
     # Group by decades and calculate average IMDb
     decade_avg_imdb = data.groupby('decade')['imdb'].mean().reset_index()
 
-    # Обеспечим наличие всех десятилетий
+    # Keep all decades
     decades = ['1990s', '2000s', '2010s', '2020s']
     decade_avg = {decade: None for decade in decades}
     for _, row in decade_avg_imdb.iterrows():
@@ -154,7 +154,7 @@ def get_budget_box_office_data():
     data['profit_category'] = data.apply(categorize_profit, axis=1)
 
     # Prepare scatter plot data for budget vs box office
-    scatter_data = data[['production_budget', 'box_office', 'profit_category', 'title']].dropna()
+    scatter_data = data[['production_budget', 'box_office', 'profit_category', 'title', 'link']].dropna()
     # Convert to millions
     scatter_data['production_budget'] = scatter_data['production_budget'] / 1_000_000
     scatter_data['box_office'] = scatter_data['box_office'] / 1_000_000
@@ -164,7 +164,11 @@ def get_budget_box_office_data():
         category_data = scatter_data[scatter_data['profit_category'] == category]
         datasets.append({
             'label': category,
-            'data': [{'x': row['production_budget'], 'y': row['box_office'], 'title': row['title']} for _, row in category_data.iterrows()]
+            'data': [
+                {'x': row['production_budget'], 
+                'y': row['box_office'], 
+                'title': row['title'], 
+                'link': row['link']} for _, row in category_data.iterrows()]
         })
     return jsonify(datasets)
 
@@ -176,13 +180,17 @@ def get_imdb_metascore_data():
     # Calculate profit category
     data['profit_category'] = data.apply(categorize_profit, axis=1)
     # Prepare scatter plot data for IMDb vs Metascore
-    scatter_data = data[['imdb', 'metascore', 'profit_category', 'title']].dropna()
+    scatter_data = data[['imdb', 'metascore', 'profit_category', 'title', 'link']].dropna()
     datasets = []
     for category in ['1. Box Office < Budget', '2. Budget ≤ Box Office < 2x Budget', '3. Box Office ≥ 2x Budget']:
         category_data = scatter_data[scatter_data['profit_category'] == category]
         datasets.append({
             'label': category,
-            'data': [{'x': row['imdb'], 'y': row['metascore'], 'title': row['title']} for _, row in category_data.iterrows()]
+            'data': [
+                {'x': row['imdb'], 
+                'y': row['metascore'], 
+                'title': row['title'], 
+                'link': row['link']} for _, row in category_data.iterrows()]
         })
     return jsonify(datasets)
 

@@ -444,6 +444,19 @@ function initPhysics() {
 }
 
 function initCharts() {
+    // Define the click handler for scatter plot points
+    const pointClickHandler = function(event, elements, chart) {
+        if (elements.length > 0) {
+            const element = elements[0];
+            const datasetIndex = element.datasetIndex;
+            const index = element.index;
+            const pointData = chart.data.datasets[datasetIndex].data[index];
+            if (pointData.link) {
+                window.open(pointData.link, '_blank'); // Open the film's link in a new tab
+            }
+        }
+    };
+
     // Define a modern color palette
     const colors = {
         primary: '#08D9D6',    // Teal/Cyan
@@ -695,7 +708,8 @@ function initCharts() {
                         },
                         min: 1
                     }
-                }
+                },
+                onClick: pointClickHandler // Add the click handler
             }
         },
         imdbMetascoreChart: { 
@@ -787,10 +801,10 @@ function initCharts() {
                         },
                         beginAtZero: true
                     }
-                }
+                },
+                onClick: pointClickHandler // Add the click handler
             }
         },
-        // ... rest of the chart configs ...
     };
 
     // Function to fetch data and initialize a chart
@@ -849,6 +863,21 @@ function initCharts() {
                                 canvas.chartInstance.destroy();
                             }
                             canvas.chartInstance = new Chart(ctx, config);
+
+                            // Add mousemove event listener for cursor change
+                            if (chartId === 'budgetBoxOfficeChart' || chartId === 'imdbMetascoreChart') {
+                                canvas.addEventListener('mousemove', function(e) {
+                                    const elements = canvas.chartInstance.getElementsAtEventForMode(
+                                        e, 'point', { intersect: true }
+                                    );
+                                    if (elements.length > 0) {
+                                        canvas.style.cursor = 'pointer';
+                                    } else {
+                                        canvas.style.cursor = 'default';
+                                    }
+                                });
+                            }
+
                             resolve(canvas.chartInstance); // Resolve with the Chart.js instance
                         } else {
                             console.warn(`Canvas element not found for ${chartId}`);
