@@ -7,8 +7,11 @@ The platform provides interactive visualizations and allows users with known par
 
 ## Our key observations:
 •	Metascore and IMDb ratings are generally consistent, but viewers tend to avoid extreme ratings.
+
 •	Genre and year of release greatly influence how a film is perceived.
+
 •	Budget and box office are important, but they don't tell the whole story without genre.
+
 •	Box office success ≠ successful film.
 
 ## Checkpoint 1:
