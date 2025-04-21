@@ -1,4 +1,16 @@
 # Data_Wrangling_Visualization_Project
+## Project Overview
+
+This project presents an analytical web platform that helps evaluate the quality of movies based on publicly available data. By analyzing over 4,000 films, we identified how factors like IMDb rating, Metascore, genre, release year, budget, and box office returns influence the perception of a movie.
+
+The platform provides interactive visualizations and allows users with known parameters of a film to get data-driven insights into its quality. This tool can benefit viewers, investors, analysts, and studios looking for objective evaluations.
+
+## Our key observations:
+•	Metascore and IMDb ratings are generally consistent, but viewers tend to avoid extreme ratings.
+•	Genre and year of release greatly influence how a film is perceived.
+•	Budget and box office are important, but they don't tell the whole story without genre.
+•	Box office success ≠ successful film.
+
 ## Checkpoint 1:
 At this stage, our team:
 1. Collected data from the imdb website about 4,000 films using Scrapy
